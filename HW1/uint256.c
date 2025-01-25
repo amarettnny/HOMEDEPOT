@@ -43,13 +43,17 @@ char *uint256_format_as_hex( UInt256 val ) {
 uint32_t uint256_get_bits( UInt256 val, unsigned index ) {
   uint32_t bits;
   // TODO: implement
+  bits = val.data[index];
   return bits;
 }
 
 // Return 1 if bit at given index is set, 0 otherwise.
 int uint256_is_bit_set( UInt256 val, unsigned index ) {
   // TODO: implement
-  return 0;
+  int bit_idx = index / 32;
+  int idx = index % 32;
+  int bit = (int)((val.data[bit_idx] << (31 - idx)) >> 31);
+  return bit;
 }
 
 // Compute the sum of two UInt256 values.
