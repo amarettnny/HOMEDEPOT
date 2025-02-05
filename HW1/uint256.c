@@ -38,6 +38,7 @@ UInt256 uint256_create_from_hex( const char *hex ) {
   const char* start;
   int count;
   int remain;
+  // if length is greater than 64, use the rightmost 64
   if (len > 64){
     start = hex + len - 64;
     count = 8;
@@ -47,6 +48,7 @@ UInt256 uint256_create_from_hex( const char *hex ) {
     count = len / 8;
     remain = len % 8;
   }
+  // start from the rightmost 8 char, initailize uint256 value
   int idx = 0;
   while (idx < count){
     char hex_str[9];
@@ -62,6 +64,7 @@ UInt256 uint256_create_from_hex( const char *hex ) {
     result.data[idx] = strtoul(hex_str, NULL, 16);
     idx += 1;
   }
+  // fill 0 for the uninitailized part
   while(idx < 8){
     result.data[idx] = 0;
     idx += 1;
@@ -74,15 +77,18 @@ UInt256 uint256_create_from_hex( const char *hex ) {
 char *uint256_format_as_hex( UInt256 val ) {
   char *hex = NULL;
   // TODO: implement
+  //find the part of uint256 to start
   int idx = 7;
   while (idx >= 0 && val.data[idx] == 0){
     idx--;
   }
+  //if uint256 value is 0, output "0"
   if (idx == -1){
     hex = malloc(2);
     strcpy(hex, "0");
     return hex;
   }
+  // get the hex string for each part
   char* strings[idx + 1];
   int sum_len = 0;
   for(int i = 0; i <= idx; i++){
@@ -96,6 +102,7 @@ char *uint256_format_as_hex( UInt256 val ) {
       sum_len += 8;
     }
   }
+  // combine the hex strings together as a output
   hex = malloc(sum_len + 1);
   strcpy(hex, strings[0]);
   for(int i = 1; i <= idx; i++){
@@ -136,6 +143,7 @@ UInt256 uint256_add( UInt256 left, UInt256 right ) {
     uint32_t rightpart = right.data[i];
     uint32_t total = leftpart + rightpart + overflow;
     sum.data[i] = total;
+    // check whether there is an overflow
     if ((overflow == 0 && total < leftpart) || (overflow == 1 && total <= leftpart)){
       overflow = 1;
     }else{
