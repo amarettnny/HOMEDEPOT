@@ -393,8 +393,54 @@ void test_create_from_hex2(){
   ASSERT(0x0U == hex65.data[7]); 
 }
 void test_format_as_hex2(){
-
+  char *s;
+  uint32_t first[8] = {1, 1, 0, 0, 0, 0, 0, 0};
+  UInt256 one;
+  INIT_FROM_ARR(one,first);
+  s = uint256_format_as_hex(one);
+  ASSERT( 0 == strcmp( "100000001", s ) );
+  free( s );
+  
+  uint32_t second[8] = {15, 1, 0, 0, 0, 0, 0, 0};
+  UInt256 two;
+  INIT_FROM_ARR(two, second);
+  s = uint256_format_as_hex(two);
+  ASSERT( 0 == strcmp( "10000000f", s ) );
+  free( s );
+  
+  uint32_t third[8] = {31, 0, 0, 0, 0, 0, 0, 0};
+  UInt256 three;
+  INIT_FROM_ARR(three, third);
+  s = uint256_format_as_hex(three);
+  ASSERT( 0 == strcmp( "1f", s ) );
+  free( s );
 }
 void test_sub2(){
-
+  UInt256 left, right, result;
+  //4c6f73ce12e4b57ea94818d6ea352ef8cce425b89dbf782c5d550292821c41f - de2437573a034536735f24fa78bb55efc7f7867e1a7637464e37d77ac8b273 = 3e8d30589f44812b4212268742a97999d064ad50bc1814b7f871851ad5911ac
+  left.data[0] = 0xf6a2d5baU;
+  left.data[1] = 0x0d12797fU;
+  left.data[2] = 0x1f36a938U;
+  left.data[3] = 0x6e254196U;
+  left.data[4] = 0xb45d8b63U;
+  left.data[5] = 0x5f3f3ab0U;
+  left.data[6] = 0xa269e721U;
+  left.data[7] = 0xaad9bd3U;
+  right.data[0] = 0xb6fd367dU;
+  right.data[1] = 0x2d4a08afU;
+  right.data[2] = 0x902697f6U;
+  right.data[3] = 0xaa470e9cU;
+  right.data[4] = 0xb3ab43b5U;
+  right.data[5] = 0x259e4007U;
+  right.data[6] = 0xadcc660bU;
+  right.data[7] = 0x883d36aU;
+  result = uint256_sub(left, right);
+  ASSERT(0xada00c37U == result.data[0]);
+  ASSERT(0x3a5c822fU == result.data[1]);
+  ASSERT(0xaf5d412eU == result.data[2]);
+  ASSERT(0x186c5032U == result.data[3]);
+  ASSERT(0x6808cf19U == result.data[4]);
+  ASSERT(0x84dd7ab8U == result.data[5]);
+  ASSERT(0x50364d2cU == result.data[6]);
+  ASSERT(0x13316f3eU == result.data[7]);
 }
