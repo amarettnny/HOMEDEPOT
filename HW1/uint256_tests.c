@@ -371,11 +371,13 @@ void test_add2(){
   ASSERT(0x50364d2cU == result.data[6]);
   ASSERT(0x13316f3eU == result.data[7]);
   
+  // left + 0 = left 
   UInt256 result2;
   UInt256 zero = uint256_create_from_hex("0");
   result2 = uint256_add(left, zero);
   ASSERT_SAME(result2, left);
-
+  
+  // left + max = left - 1
   UInt256 result3;
   UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   result3 = uint256_add(left, max);
@@ -389,6 +391,7 @@ void test_add2(){
   ASSERT(0xaad9bd3U == result3.data[7]);
 }
 void test_create_from_hex2(){
+  // input hex string has length 9 (not a multiple of 8)
   UInt256 hex1 = uint256_create_from_hex( "111111111" );
   ASSERT(0x11111111U == hex1.data[0]);
   ASSERT(0x1U == hex1.data[1]);
@@ -410,6 +413,7 @@ void test_create_from_hex2(){
   ASSERT(0x0U == hex65.data[7]); 
 }
 void test_format_as_hex2(){
+  // check there is no 0 in the front, and correct number of 0 in the 'middle'
   char *s;
   uint32_t first[8] = {1, 1, 0, 0, 0, 0, 0, 0};
   UInt256 one;
@@ -460,4 +464,23 @@ void test_sub2(){
   ASSERT(0xb4212268U == result.data[5]);
   ASSERT(0x89f44812U == result.data[6]);
   ASSERT(0x3e8d305U == result.data[7]);
+
+  // left - 0 = left
+  UInt256 result2;
+  UInt256 zero = uint256_create_from_hex("0");
+  result2 = uint256_sub(left, zero);
+  ASSERT_SAME(result2, left);
+
+  // left - max = left + 1
+  UInt256 result3;
+  UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  result3 = uint256_sub(left, max);
+  ASSERT(0x2821c420U == result3.data[0]);
+  ASSERT(0xc5d55029U == result3.data[1]);
+  ASSERT(0x89dbf782U == result3.data[2]);
+  ASSERT(0x8cce425bU == result3.data[3]);
+  ASSERT(0x6ea352efU == result3.data[4]);
+  ASSERT(0xea94818dU == result3.data[5]);
+  ASSERT(0xe12e4b57U == result3.data[6]);
+  ASSERT(0x4c6f73cU == result3.data[7]);
 }
