@@ -372,7 +372,25 @@ void test_add2(){
   ASSERT(0x13316f3eU == result.data[7]);
 }
 void test_create_from_hex2(){
-
+  UInt256 hex1 = uint256_create_from_hex( "111111111" );
+  ASSERT(0x11111111U == hex1.data[0]);
+  ASSERT(0x1U == hex1.data[1]);
+  ASSERT(0x0U == hex1.data[2]);
+  ASSERT(0x0U == hex1.data[3]);
+  ASSERT(0x0U == hex1.data[4]);
+  ASSERT(0x0U == hex1.data[5]);
+  ASSERT(0x0U == hex1.data[6]);
+  ASSERT(0x0U == hex1.data[7]);
+  // input hex string has length 65
+  UInt256 hex65 = uint256_create_from_hex( "10000000000000000000000000000000000000000000000000000000000000000" );
+  ASSERT(0x0U == hex65.data[0]);
+  ASSERT(0x0U == hex65.data[1]);
+  ASSERT(0x0U == hex65.data[2]);
+  ASSERT(0x0U == hex65.data[3]);
+  ASSERT(0x0U == hex65.data[4]);
+  ASSERT(0x0U == hex65.data[5]);
+  ASSERT(0x0U == hex65.data[6]);
+  ASSERT(0x0U == hex65.data[7]); 
 }
 void test_format_as_hex2(){
 
