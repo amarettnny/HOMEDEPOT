@@ -50,6 +50,12 @@ void test_neg_overflow( TestObjs *objs );
 void test_mul( TestObjs *objs );
 void test_lshift( TestObjs *objs );
 
+// Add new test
+void test_add2();
+void test_create_from_hex2();
+void test_format_as_hex2();
+void test_sub2();
+
 int main( int argc, char **argv ) {
   if ( argc > 1 )
     tctest_testname_to_execute = argv[1];
@@ -69,6 +75,10 @@ int main( int argc, char **argv ) {
   TEST( test_mul );
   TEST( test_lshift );
 
+  TEST( test_create_from_hex2 );
+  TEST( test_format_as_hex2 );
+  TEST( test_add2 );
+  TEST( test_sub2 );
   TEST_FINI();
 }
 
@@ -330,4 +340,43 @@ void test_lshift( TestObjs *objs ) {
     result = uint256_lshift( val, 50U );
     ASSERT_SAME( expected, result );
   }
+}
+
+void test_add2(){
+  UInt256 left, right, result;
+  // aad9bd3a269e7215f3f3ab0b45d8b636e2541961f36a9380d12797ff6a2d5ba + 883d36aadcc660b259e4007b3ab43b5aa470e9c902697f62d4a08afb6fd367d = 13316f3e50364d2c84dd7ab86808cf19186c5032af5d412e3a5c822fada00c37
+  left.data[0] = 0xf6a2d5baU;
+  left.data[1] = 0x0d12797fU;
+  left.data[2] = 0x1f36a938U;
+  left.data[3] = 0x6e254196U;
+  left.data[4] = 0xb45d8b63U;
+  left.data[5] = 0x5f3f3ab0U;
+  left.data[6] = 0xa269e721U;
+  left.data[7] = 0xaad9bd3U;
+  right.data[0] = 0xb6fd367dU;
+  right.data[1] = 0x2d4a08afU;
+  right.data[2] = 0x902697f6U;
+  right.data[3] = 0xaa470e9cU;
+  right.data[4] = 0xb3ab43b5U;
+  right.data[5] = 0x259e4007U;
+  right.data[6] = 0xadcc660bU;
+  right.data[7] = 0x883d36aU;
+  result = uint256_add(left, right);
+  ASSERT(0xada00c37U == result.data[0]);
+  ASSERT(0x3a5c822fU == result.data[1]);
+  ASSERT(0xaf5d412eU == result.data[2]);
+  ASSERT(0x186c5032U == result.data[3]);
+  ASSERT(0x6808cf19U == result.data[4]);
+  ASSERT(0x84dd7ab8U == result.data[5]);
+  ASSERT(0x50364d2cU == result.data[6]);
+  ASSERT(0x13316f3eU == result.data[7]);
+}
+void test_create_from_hex2(){
+
+}
+void test_format_as_hex2(){
+
+}
+void test_sub2(){
+
 }
