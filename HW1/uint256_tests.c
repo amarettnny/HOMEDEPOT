@@ -370,6 +370,23 @@ void test_add2(){
   ASSERT(0x84dd7ab8U == result.data[5]);
   ASSERT(0x50364d2cU == result.data[6]);
   ASSERT(0x13316f3eU == result.data[7]);
+  
+  UInt256 result2;
+  UInt256 zero = uint256_create_from_hex("0");
+  result2 = uint256_add(left, zero);
+  ASSERT_SAME(result2, left);
+
+  UInt256 result3;
+  UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  result3 = uint256_add(left, max);
+  ASSERT(0xf6a2d5b9U == result3.data[0]);
+  ASSERT(0x0d12797fU == result3.data[1]);
+  ASSERT(0x1f36a938U == result3.data[2]);
+  ASSERT(0x6e254196U == result3.data[3]);
+  ASSERT(0xb45d8b63U == result3.data[4]);
+  ASSERT(0x5f3f3ab0U == result3.data[5]);
+  ASSERT(0xa269e721U == result3.data[6]);
+  ASSERT(0xaad9bd3U == result3.data[7]);
 }
 void test_create_from_hex2(){
   UInt256 hex1 = uint256_create_from_hex( "111111111" );
@@ -418,29 +435,29 @@ void test_format_as_hex2(){
 void test_sub2(){
   UInt256 left, right, result;
   //4c6f73ce12e4b57ea94818d6ea352ef8cce425b89dbf782c5d550292821c41f - de2437573a034536735f24fa78bb55efc7f7867e1a7637464e37d77ac8b273 = 3e8d30589f44812b4212268742a97999d064ad50bc1814b7f871851ad5911ac
-  left.data[0] = 0xf6a2d5baU;
-  left.data[1] = 0x0d12797fU;
-  left.data[2] = 0x1f36a938U;
-  left.data[3] = 0x6e254196U;
-  left.data[4] = 0xb45d8b63U;
-  left.data[5] = 0x5f3f3ab0U;
-  left.data[6] = 0xa269e721U;
-  left.data[7] = 0xaad9bd3U;
-  right.data[0] = 0xb6fd367dU;
-  right.data[1] = 0x2d4a08afU;
-  right.data[2] = 0x902697f6U;
-  right.data[3] = 0xaa470e9cU;
-  right.data[4] = 0xb3ab43b5U;
-  right.data[5] = 0x259e4007U;
-  right.data[6] = 0xadcc660bU;
-  right.data[7] = 0x883d36aU;
+  left.data[0] = 0x2821c41fU;
+  left.data[1] = 0xc5d55029U;
+  left.data[2] = 0x89dbf782U;
+  left.data[3] = 0x8cce425bU;
+  left.data[4] = 0x6ea352efU;
+  left.data[5] = 0xea94818dU;
+  left.data[6] = 0xe12e4b57U;
+  left.data[7] = 0x4c6f73cU;
+  right.data[0] = 0x7ac8b273U;
+  right.data[1] = 0x464e37d7U;
+  right.data[2] = 0x7e1a7637U;
+  right.data[3] = 0xefc7f786U;
+  right.data[4] = 0xfa78bb55U;
+  right.data[5] = 0x36735f24U;
+  right.data[6] = 0x573a0345U;
+  right.data[7] = 0xde2437U;
   result = uint256_sub(left, right);
-  ASSERT(0xada00c37U == result.data[0]);
-  ASSERT(0x3a5c822fU == result.data[1]);
-  ASSERT(0xaf5d412eU == result.data[2]);
-  ASSERT(0x186c5032U == result.data[3]);
-  ASSERT(0x6808cf19U == result.data[4]);
-  ASSERT(0x84dd7ab8U == result.data[5]);
-  ASSERT(0x50364d2cU == result.data[6]);
-  ASSERT(0x13316f3eU == result.data[7]);
+  ASSERT(0xad5911acU == result.data[0]);
+  ASSERT(0x7f871851U == result.data[1]);
+  ASSERT(0x0bc1814bU == result.data[2]);
+  ASSERT(0x9d064ad5U == result.data[3]);
+  ASSERT(0x742a9799U == result.data[4]);
+  ASSERT(0xb4212268U == result.data[5]);
+  ASSERT(0x89f44812U == result.data[6]);
+  ASSERT(0x3e8d305U == result.data[7]);
 }
