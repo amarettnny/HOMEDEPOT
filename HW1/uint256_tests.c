@@ -560,7 +560,7 @@ void test_mul2(TestObjs *objs) {
   result = uint256_mul(objs->zero, objs->zero);
   ASSERT_SAME(objs->zero, result);
 
-  // test shift with multiplication (2^32 * 2^64 = 2^)
+  // test shift with multiplication (2^32 * 2^64 = 2^96)
   UInt256 shift_32 = uint256_lshift(objs->one, 32);
   UInt256 shift_64 = uint256_lshift(objs->one, 64);
   UInt256 shift_96 = uint256_lshift(objs->one, 96);
