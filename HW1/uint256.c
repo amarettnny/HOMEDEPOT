@@ -206,7 +206,7 @@ UInt256 uint256_lshift(UInt256 val, unsigned shift) {
       result.data[i] = val.data[i - element_shift] << bits_shift;
 
       // handle overflow from the previous element
-      if ((i - element_shift) >= 0) {
+      if ((i - element_shift) > 0) {
         uint32_t overflow = val.data[i - element_shift - 1] >> (32 - bits_shift);
         result.data[i] = result.data[i] | overflow; //bitwise OR
       }
