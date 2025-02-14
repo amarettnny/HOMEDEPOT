@@ -1,3 +1,11 @@
-TODO: names of team members
+Team members:
+Siyang Sun
+Tianji Li
 
-TODO: contributions of each team member
+Contributions:
+For Milestone 1:
+    Tianji wrote both the grayscale and kaleidoscope functions and all related helper functions, 
+    including their unit test.
+
+    Siyang wrote both the rgb and fade functions and all related helper functions, including 
+    their unit tests. 

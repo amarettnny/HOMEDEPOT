@@ -1,5 +1,6 @@
 // C implementations of image processing functions
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "imgproc.h"
@@ -103,6 +104,20 @@ void imgproc_grayscale( struct Image *input_img, struct Image *output_img ) {
   }
 }
 
+// Return the relative index of a pixel in the array that represent the image
+// 
+// Parameters:
+//   img - pointer to the image which contains data
+//   col - the column index in the 2D image of the pixel
+//   row - the row index in the 2D image of the pixel
+// 
+// Returns:
+//   the pixel's index in an array, converting from the 2D image
+int32_t compute_index( struct Image *img, int32_t col, int32_t row ){
+  int32_t index = row * img->width + col;
+  return index;
+}
+
 // Render an output image containing 4 replicas of the original image,
 // refered to as A, B, C, and D in the following diagram:
 //
@@ -131,7 +146,35 @@ void imgproc_grayscale( struct Image *input_img, struct Image *output_img ) {
 //                width and height twice the width/height of the
 //                input image)
 void imgproc_rgb( struct Image *input_img, struct Image *output_img ) {
-  // TODO: implement
+  // The output image has twice the width/height of the input image
+  output_img->height = input_img->height * 2;
+  output_img->width = input_img->width * 2;
+  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
+
+  for (int row = 0; row < input_img->height; row++){
+    for (int col = 0; col < input_img->width; col++){
+      uint32_t pixel = input_img->data[compute_index(input_img, col, row)];
+      uint32_t r = get_r(pixel);
+      uint32_t g = get_g(pixel);
+      uint32_t b = get_b(pixel);
+      uint32_t a = get_a(pixel);
+      uint32_t pixel_r = make_pixel(r, 0, 0, a);
+      uint32_t pixel_g = make_pixel(0, g, 0, a);
+      uint32_t pixel_b = make_pixel(0, 0, b, a);
+      
+      // replicate original image A
+      output_img->data[compute_index(output_img, col, row)] = pixel;
+
+      // B shows only the red color component
+      output_img->data[compute_index(output_img, col + input_img->width, row)] = pixel_r;
+
+      // C shows only the green color component
+      output_img->data[compute_index(output_img, col, row + input_img->height)] = pixel_g;
+
+      // D shows only the blue color component
+      output_img->data[compute_index(output_img, col + input_img->width, row + input_img->height)] = pixel_b;
+    }
+  }
 }
 
 // Render a "faded" version of the input image.
