@@ -98,5 +98,61 @@ void imgproc_fade( struct Image *input_img, struct Image *output_img );
 int imgproc_kaleidoscope( struct Image *input_img, struct Image *output_img );
 
 // TODO: add prototypes for your helper functions
+// Get the r values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the r value contained in the pixel
+uint32_t get_r( uint32_t pixel);
+
+// Get the g values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the g value contained in the pixel
+uint32_t get_g( uint32_t pixel);
+
+// Get the b values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the b value contained in the pixel
+uint32_t get_b( uint32_t pixel);
+
+// Get the a values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the a value contained in the pixel
+uint32_t get_a( uint32_t pixel);
+
+// Make a pixel given its rgba values
+//
+// Parameters:
+//  r : red value
+//  g : green value
+//  b : blue value
+//  a : alpha value
+//
+// Returns:
+//  a pixel with given rgba value
+uint32_t make_pixel(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
+
+// Convert input pixel to grayscale.
+//
+// Parameters:
+//   pixel - one single pixel contains rgba information
+//
+// Returns:
+//   a pixel in grayscale
+uint32_t to_grayscale( uint32_t pixel );
 
 #endif // IMGPROC_H

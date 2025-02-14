@@ -3,8 +3,87 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "imgproc.h"
-
 // TODO: define your helper functions here
+
+// Get the r values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the r value contained in the pixel
+uint32_t get_r( uint32_t pixel){ 
+  uint32_t red = (pixel & 0xFF000000) >> 24;
+  return red;
+}
+
+// Get the g values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the g value contained in the pixel
+uint32_t get_g( uint32_t pixel){
+  uint32_t green = (pixel & 0xFF0000) >> 16;
+  return green;
+}
+
+// Get the b values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the b value contained in the pixel
+uint32_t get_b( uint32_t pixel){
+  uint32_t blue = (pixel & 0xFF00) >> 8;
+  return blue;
+}
+
+// Get the a values within the input pixel
+//
+// Parameters:
+//   pixel - a uint32_t value contains rgba information
+//
+// Returns:
+//   the a value contained in the pixel
+uint32_t get_a( uint32_t pixel){
+  uint32_t alpha = (pixel & 0xFF);
+  return alpha;
+}
+
+// Make a pixel given its rgba values
+//
+// Parameters:
+//  r : red value
+//  g : green value
+//  b : blue value
+//  a : alpha value
+// 
+// Returns:
+//  a pixel with given rgba value
+uint32_t make_pixel(uint32_t r, uint32_t g, uint32_t b, uint32_t a){
+  uint32_t pixel = ((r << 24) | (g << 16) | (b << 8) | a);
+  return pixel;
+}
+
+// Convert input pixel to grayscale.
+//
+// Parameters:
+//   pixel - one single pixel contains rgba information
+//
+// Returns:
+//   a pixel in grayscale
+uint32_t to_grayscale( uint32_t pixel ) {
+  uint32_t red = get_r(pixel);
+  uint32_t green = get_g(pixel);
+  uint32_t blue = get_b(pixel);
+  uint32_t alpha = get_a(pixel);
+  uint32_t gray = (79 * red + 128 * green + 49 * blue) / 256;
+  uint32_t new_pixel = make_pixel(gray, gray, gray, alpha);
+  return new_pixel;
+}
 
 // Convert input pixels to grayscale.
 // This transformation always succeeds.
@@ -14,7 +93,14 @@
 //   output_img - pointer to the output Image (in which the transformed
 //                pixels should be stored)
 void imgproc_grayscale( struct Image *input_img, struct Image *output_img ) {
-  // TODO: implement
+  output_img->width = input_img->width;
+  output_img->height = input_img->height;
+  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
+  for (int i = 0; i < input_img->width * input_img->height; i++){
+    uint32_t pixel = input_img->data[i];
+    uint32_t new_pixel = to_grayscale(pixel);
+    output_img->data[i] = new_pixel; 
+  }
 }
 
 // Render an output image containing 4 replicas of the original image,
