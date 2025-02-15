@@ -96,7 +96,6 @@ uint32_t to_grayscale( uint32_t pixel ) {
 void imgproc_grayscale( struct Image *input_img, struct Image *output_img ) {
   output_img->width = input_img->width;
   output_img->height = input_img->height;
-  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
   for (int i = 0; i < input_img->width * input_img->height; i++){
     uint32_t pixel = input_img->data[i];
     uint32_t new_pixel = to_grayscale(pixel);
@@ -149,7 +148,6 @@ void imgproc_rgb( struct Image *input_img, struct Image *output_img ) {
   // The output image has twice the width/height of the input image
   output_img->height = input_img->height * 2;
   output_img->width = input_img->width * 2;
-  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
 
   for (int row = 0; row < input_img->height; row++){
     for (int col = 0; col < input_img->width; col++){
@@ -204,7 +202,6 @@ int64_t gradient( int64_t x, int64_t max ){
 void imgproc_fade( struct Image *input_img, struct Image *output_img ) {
   output_img->width = input_img->width;
   output_img->height = input_img->height;
-  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
 
   for (int i = 0; i < input_img->height * input_img->width; i++){
     int row = i / input_img->width;
@@ -274,7 +271,6 @@ int imgproc_kaleidoscope( struct Image *input_img, struct Image *output_img ) {
   }
   output_img->width = input_img->width;
   output_img->height = input_img->height;
-  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
   int32_t width = input_img->width;
   int32_t in_row, in_col, in_idx, fake_width;
   for(int i = 0; i < width * width; i++){
