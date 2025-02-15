@@ -482,6 +482,7 @@ void test_gradient(TestObjs *objs){
   ASSERT(gradient(0, 10) == 0);
   ASSERT(gradient(10, 10) == 0);
   ASSERT(gradient(5, 10) > 0);
+  ASSERT(gradient(5,10) == 1000000); //Midpoint value
   ASSERT(gradient(3, 10) < gradient(5, 10)); // parabola shape
 }
 
