@@ -1,7 +1,7 @@
 // C implementations of image processing functions
 
 #include <stdint.h>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <assert.h>
 #include "imgproc.h"
 // TODO: define your helper functions here
@@ -176,11 +176,11 @@ void imgproc_rgb( struct Image *input_img, struct Image *output_img ) {
 }
 
 // Calculate the gradient for the input row/column coordinate
-
+// 
 // Parameters:
 //   x - input row/column coordinate
 //   max - number of pixels in that row or column
-
+// 
 // Return:
 //   the calculated gradient for the input row/column coordinate
 int64_t gradient( int64_t x, int64_t max ){

@@ -32,6 +32,13 @@ make_pixel:
         .globl to_grayscale
 to_grayscale:
         ret
+		.globl gradient
+gradient:
+		ret
+		.globl compute_index
+compute_index:
+		ret
+
 /*
  * Implementations of API functions
  */

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include "tctest.h"
@@ -117,6 +118,8 @@ void test_get_b(TestObjs *objs);
 void test_get_a(TestObjs *objs);
 void test_make_pixel(TestObjs *objs);
 void test_to_grayscale(TestObjs *objs);
+void test_gradient(TestObjs *objs);
+void test_compute_index(TestObjs *objs);
 
 int main( int argc, char **argv ) {
   // allow the specific test to execute to be specified as the
@@ -141,6 +144,8 @@ int main( int argc, char **argv ) {
   TEST(test_get_a);
   TEST(test_make_pixel);
   TEST(test_to_grayscale);
+  TEST(test_gradient);
+  TEST(test_compute_index);
   TEST_FINI();
 }
 
@@ -421,6 +426,7 @@ void test_get_r(TestObjs *objs){
   ASSERT(get_r(pixel2) == 0xFF);
   ASSERT(get_r(pixel3) == 0x0);
 }
+
 void test_get_g(TestObjs *objs){
   uint32_t pixel1 = 0x12345678;
   uint32_t pixel2 = 0xFFFFFFFF;
@@ -429,6 +435,7 @@ void test_get_g(TestObjs *objs){
   ASSERT(get_g(pixel2) == 0xFF);
   ASSERT(get_g(pixel3) == 0x0);
 }
+
 void test_get_b(TestObjs *objs){
   uint32_t pixel1 = 0x12345678;
   uint32_t pixel2 = 0xFFFFFFFF;
@@ -437,6 +444,7 @@ void test_get_b(TestObjs *objs){
   ASSERT(get_b(pixel2) == 0xFF);
   ASSERT(get_b(pixel3) == 0x0);
 }
+
 void test_get_a(TestObjs *objs){
   uint32_t pixel1 = 0x12345678;
   uint32_t pixel2 = 0xFFFFFFFF;
@@ -445,6 +453,7 @@ void test_get_a(TestObjs *objs){
   ASSERT(get_a(pixel2) == 0xFF);
   ASSERT(get_a(pixel3) == 0x0);
 }
+
 void test_make_pixel(TestObjs *objs){
   uint32_t red = 0x1;
   uint32_t green = 0x31;
@@ -459,6 +468,7 @@ void test_make_pixel(TestObjs *objs){
   uint32_t pixel2 = make_pixel(red2, green2, blue2, alpha2);
   ASSERT(pixel2 == 0xFF00FF00);
 }
+
 void test_to_grayscale(TestObjs *objs){
   uint32_t pixel = 0xAB8954FF;
   uint32_t gray_pixel = to_grayscale(pixel);
@@ -466,4 +476,20 @@ void test_to_grayscale(TestObjs *objs){
   uint32_t pixel2 = 0x123456FF;
   uint32_t gray_pixel2 = to_grayscale(pixel2);
   ASSERT(gray_pixel2 == 0x303030FF);
+}
+
+void test_gradient(TestObjs *objs){
+  ASSERT(gradient(0, 10) == 0);
+  ASSERT(gradient(10, 10) == 0);
+  ASSERT(gradient(5, 10) > 0);
+  ASSERT(gradient(3, 10) < gradient(5, 10)); // parabola shape
+}
+
+void test_compute_index(TestObjs *objs){
+  struct Image img;
+  img.width = 10;
+  img.height = 10;
+  assert(compute_index(&img, 0, 0) == 0);
+  assert(compute_index(&img, 5, 2) == 25);
+  assert(compute_index(&img, 9, 9) == 99);
 }

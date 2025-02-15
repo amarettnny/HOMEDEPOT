@@ -155,4 +155,25 @@ uint32_t make_pixel(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
 //   a pixel in grayscale
 uint32_t to_grayscale( uint32_t pixel );
 
+// Return the relative index of a pixel in the array that represent the image
+// 
+// Parameters:
+//   img - pointer to the image which contains data
+//   col - the column index in the 2D image of the pixel
+//   row - the row index in the 2D image of the pixel
+// 
+// Returns:
+//   the pixel's index in an array, converting from the 2D image
+int32_t compute_index( struct Image *img, int32_t col, int32_t row );
+
+// Calculate the gradient for the input row/column coordinate
+// 
+// Parameters:
+//   x - input row/column coordinate
+//   max - number of pixels in that row or column
+// 
+// Return:
+//   the calculated gradient for the input row/column coordinate
+int64_t gradient( int64_t x, int64_t max );
+
 #endif // IMGPROC_H
