@@ -111,13 +111,19 @@ void test_grayscale_basic( TestObjs *objs );
 void test_fade_basic( TestObjs *objs );
 void test_kaleidoscope_basic( TestObjs *objs );
 // TODO: add prototypes for additional test functions
+void test_get_r(TestObjs *objs);
+void test_get_g(TestObjs *objs);
+void test_get_b(TestObjs *objs);
+void test_get_a(TestObjs *objs);
+void test_make_pixel(TestObjs *objs);
+void test_to_grayscale(TestObjs *objs);
 
 int main( int argc, char **argv ) {
   // allow the specific test to execute to be specified as the
   // first command line argument
   if ( argc > 1 )
     tctest_testname_to_execute = argv[1];
-
+  //system( "mkdir -p input output expected" );
   TEST_INIT();
 
   // Run tests.
@@ -127,7 +133,14 @@ int main( int argc, char **argv ) {
   TEST( test_grayscale_basic );
   TEST( test_fade_basic );
   TEST( test_kaleidoscope_basic );
-
+  
+  //add new unit test for helper functions
+  TEST(test_get_r);
+  TEST(test_get_g);
+  TEST(test_get_b);
+  TEST(test_get_a);
+  TEST(test_make_pixel);
+  TEST(test_to_grayscale);
   TEST_FINI();
 }
 
@@ -400,3 +413,57 @@ void test_kaleidoscope_basic( TestObjs *objs ) {
   destroy_img( sq_test_kaleidoscope_expected );
 }
 
+void test_get_r(TestObjs *objs){
+  uint32_t pixel1 = 0x12345678;
+  uint32_t pixel2 = 0xFFFFFFFF;
+  uint32_t pixel3 = 0x0;
+  ASSERT(get_r(pixel1) == 0x12);
+  ASSERT(get_r(pixel2) == 0xFF);
+  ASSERT(get_r(pixel3) == 0x0);
+}
+void test_get_g(TestObjs *objs){
+  uint32_t pixel1 = 0x12345678;
+  uint32_t pixel2 = 0xFFFFFFFF;
+  uint32_t pixel3 = 0x0;
+  ASSERT(get_g(pixel1) == 0x34);
+  ASSERT(get_g(pixel2) == 0xFF);
+  ASSERT(get_g(pixel3) == 0x0);
+}
+void test_get_b(TestObjs *objs){
+  uint32_t pixel1 = 0x12345678;
+  uint32_t pixel2 = 0xFFFFFFFF;
+  uint32_t pixel3 = 0x0;
+  ASSERT(get_b(pixel1) == 0x56);
+  ASSERT(get_b(pixel2) == 0xFF);
+  ASSERT(get_b(pixel3) == 0x0);
+}
+void test_get_a(TestObjs *objs){
+  uint32_t pixel1 = 0x12345678;
+  uint32_t pixel2 = 0xFFFFFFFF;
+  uint32_t pixel3 = 0x0;
+  ASSERT(get_a(pixel1) == 0x78);
+  ASSERT(get_a(pixel2) == 0xFF);
+  ASSERT(get_a(pixel3) == 0x0);
+}
+void test_make_pixel(TestObjs *objs){
+  uint32_t red = 0x1;
+  uint32_t green = 0x31;
+  uint32_t blue = 0x42;
+  uint32_t alpha = 0xFF;
+  uint32_t pixel = make_pixel(red, green, blue, alpha);
+  ASSERT(pixel == 0x13142FF);
+  uint32_t red2 = 0xFF;
+  uint32_t green2 = 0x0;
+  uint32_t blue2 = 0xFF;
+  uint32_t alpha2 = 0x0;
+  uint32_t pixel2 = make_pixel(red2, green2, blue2, alpha2);
+  ASSERT(pixel2 == 0xFF00FF00);
+}
+void test_to_grayscale(TestObjs *objs){
+  uint32_t pixel = 0xAB8954FF;
+  uint32_t gray_pixel = to_grayscale(pixel);
+  ASSERT(gray_pixel == 0x898989FF);
+  uint32_t pixel2 = 0x123456FF;
+  uint32_t gray_pixel2 = to_grayscale(pixel2);
+  ASSERT(gray_pixel2 == 0x303030FF);
+}
