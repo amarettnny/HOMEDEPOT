@@ -177,6 +177,20 @@ void imgproc_rgb( struct Image *input_img, struct Image *output_img ) {
   }
 }
 
+// Calculate the gradient for the input row/column coordinate
+
+// Parameters:
+//   x - input row/column coordinate
+//   max - number of pixels in that row or column
+
+// Return:
+//   the calculated gradient for the input row/column coordinate
+int64_t gradient( int64_t x, int64_t max ){
+  int64_t gradient = ((2000000000 * x)/(1000000 * max) - 1000) * ((2000000000 * x)/(1000000 * max) - 1000);
+  return 1000000 - gradient;
+}
+
+
 // Render a "faded" version of the input image.
 //
 // See the assignment description for an explanation of how this transformation
@@ -188,7 +202,31 @@ void imgproc_rgb( struct Image *input_img, struct Image *output_img ) {
 //   input_img - pointer to the input Image
 //   output_img - pointer to the output Image
 void imgproc_fade( struct Image *input_img, struct Image *output_img ) {
-  // TODO: implement
+  output_img->width = input_img->width;
+  output_img->height = input_img->height;
+  output_img->data = (uint32_t *)malloc(output_img->height * output_img->width * sizeof(uint32_t));
+
+  for (int i = 0; i < input_img->height * input_img->width; i++){
+    int row = i / input_img->width;
+    int col = i % input_img->width;
+    uint32_t pixel = input_img->data[i];
+    uint32_t r = get_r(pixel);
+    uint32_t g = get_g(pixel);
+    uint32_t b = get_b(pixel);
+    uint32_t a = get_a(pixel);
+
+    // Calculate the gradient for row/column coordiante respectively
+    int64_t tr = gradient(row, input_img->height);
+    int64_t tc = gradient(col, input_img->width);
+
+    uint64_t DENOM = 1000000000000;
+    uint32_t fadeR = (tr * tc * r) / DENOM;
+    uint32_t fadeG = (tr * tc * g) / DENOM;
+    uint32_t fadeB = (tr * tc * b) / DENOM;
+
+    uint32_t fadePixel = make_pixel(fadeR, fadeG, fadeB, a);
+    output_img->data[i] = fadePixel;
+  }
 }
 
 // Render a "kaleidoscope" transformation of input_img in output_img.
