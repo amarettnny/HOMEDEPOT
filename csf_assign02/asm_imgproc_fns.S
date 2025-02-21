@@ -26,8 +26,8 @@
  */
         .globl get_r
 get_r:
-        shrl $24, %edi
 	movl %edi, %eax
+	shrl $24, %eax
         ret
 /*
  * uint32_t get_g( uint32_t pixel);
@@ -40,9 +40,9 @@ get_r:
  */
         .globl get_g
 get_g:
-	andl $0xFF0000, %edi
-	shrl $16, %edi
 	movl %edi, %eax
+	andl $0xFF0000, %eax
+	shrl $16, %eax
         ret
 /*
  * uint32_t get_b( uint32_t pixel);
@@ -55,9 +55,9 @@ get_g:
  */
         .globl get_b
 get_b:
-	andl $0xFF00, %edi
-	shrl $8, %edi
 	movl %edi, %eax
+	andl $0xFF00, %eax
+	shrl $8, %eax
         ret
 /*
  * uint32_t get_a( uint32_t pixel);
@@ -70,8 +70,8 @@ get_b:
  */
         .globl get_a
 get_a:
-	andl $0xFF, %edi
 	movl %edi, %eax
+	andl $0xFF, %eax
         ret
 /* 
  * uint32_t make_pixel(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
@@ -97,8 +97,35 @@ make_pixel:
 	orl %esi, %eax
 	orl %edi, %eax
         ret
-        .globl to_grayscale
+/*
+ * uint32_t to_grayscale( uint32_t pixel )
+ * 
+ * Turn the given pixel into grayscale
+ * 
+ * Parameters:
+ *   %rdi - store the value of input pixel
+ * 
+ * Returns:
+ *   %rax - store the value of output grayscale pixel 
+ */
+	.globl to_grayscale
 to_grayscale:
+	call get_r 
+	imulq $79, %rax
+	movq %rax, %r8
+	call get_g
+	imulq $128, %rax
+	addq %rax, %r8
+	call get_b
+	imulq $49, %rax
+	addq %rax, %r8
+	shrq $8, %r8
+	call get_a
+	movq %rax, %rcx
+	movq %r8, %rdi
+	movq %r8, %rsi
+	movq %r8, %rdx
+	call make_pixel
         ret
 		.globl gradient
 gradient:
