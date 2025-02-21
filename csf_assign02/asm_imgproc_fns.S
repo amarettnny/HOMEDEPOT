@@ -14,20 +14,88 @@
  * Don't forget to use the .globl directive to make
  * them visible to the test code.
  */
+
+/*
+ * uint32_t get_r( uint32_t pixel);
+ *
+ * Get r value from the given pixel
+ *
+ * Parameters:
+ *   %rdi - store the value of input pixel
+ *   %rax - store the return value r
+ */
         .globl get_r
 get_r:
+        shrl $24, %edi
+	movl %edi, %eax
         ret
+/*
+ * uint32_t get_g( uint32_t pixel);
+ *
+ * Get r value from the given pixel
+ *
+ * Parameters:
+ *   %rdi - store the value of input pixel
+ *   %rax - store the return value g
+ */
         .globl get_g
 get_g:
+	andl $0xFF0000, %edi
+	shrl $16, %edi
+	movl %edi, %eax
         ret
+/*
+ * uint32_t get_b( uint32_t pixel);
+ *
+ * Get r value from the given pixel
+ *
+ * Parameters:
+ *   %rdi - store the value of input pixel
+ *   %rax - store the return value b
+ */
         .globl get_b
 get_b:
+	andl $0xFF00, %edi
+	shrl $8, %edi
+	movl %edi, %eax
         ret
+/*
+ * uint32_t get_a( uint32_t pixel);
+ *
+ * Get r value from the given pixel
+ *
+ * Parameters:
+ *   %rdi - store the value of input pixel
+ *   %rax - store the return value a
+ */
         .globl get_a
 get_a:
+	andl $0xFF, %edi
+	movl %edi, %eax
         ret
+/* 
+ * uint32_t make_pixel(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+ * 
+ * Make a pixel given its rgba values
+ * 
+ * Parameters:
+ *   %rdi - store the value of input r
+ *   %rsi - store the value of input g
+ *   %rdx - store the value of input b
+ *   %rcx - store the value of input a
+ * Returns:
+ *   %rax - store the value of output pixel
+ *
+ */
         .globl make_pixel
 make_pixel:
+	shll $24, %edi
+	shll $16, %esi
+	shll $8, %edx
+	movl %ecx, %eax
+	orl %edx, %eax
+	orl %esi, %eax
+	orl %edi, %eax
         ret
         .globl to_grayscale
 to_grayscale:
