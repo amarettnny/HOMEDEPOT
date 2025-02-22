@@ -134,8 +134,8 @@ int main( int argc, char **argv ) {
   // for any additional test functions you add.
   TEST( test_rgb_basic );
   TEST( test_grayscale_basic );
-  // TEST( test_fade_basic );
-  // TEST( test_kaleidoscope_basic );
+  TEST( test_fade_basic );
+  TEST( test_kaleidoscope_basic );
   
   //add new unit test for helper functions
   TEST(test_get_r);
@@ -144,7 +144,7 @@ int main( int argc, char **argv ) {
   TEST(test_get_a);
   TEST(test_make_pixel);
   TEST(test_to_grayscale);
-  // TEST(test_gradient);
+  TEST(test_gradient);
   TEST(test_compute_index);
   TEST_FINI();
 }
