@@ -131,12 +131,32 @@ to_grayscale:
 	movq %r8, %rdx
 	call make_pixel // call make_pixel and store output in %eax
         ret
+
+
 		.globl gradient
 gradient:
 		ret
+
+/*
+ * int32_t compute_index( struct Image *img, int32_t col, int32_t row )
+ * 
+ * Return the relative index of a pixel in the array that represent the image.
+ * 
+ * Parameters:
+ *   %rdi - pointer to input Image sturct
+ *	 %rsi - column index
+ *	 %rdx - row index
+ * 	 
+ * Returns:
+ *   %rax - store the value of output grayscale pixel 
+ */
 		.globl compute_index
 compute_index:
-		ret
+	movl IMAGE_WIDTH_OFFSET(%rdi), %eax		/* Load the image width to eax */
+	imull %edx, %eax							/* index = row * img->width + col */
+	addl %esi, %eax
+	cltq									/* signed extension to 64-bits */
+	ret
 
 /*
  * Implementations of API functions
@@ -173,7 +193,130 @@ compute_index:
  */
 	.globl imgproc_rgb
 imgproc_rgb:
-	/* TODO: implement */
+	/* prologue to create ABI-compliant stack frame */
+    pushq %rbp
+    movq %rsp, %rbp
+    subq $64, %rsp                      /* Reserve 64 bytes for local variables */
+    pushq %r12							/* row counter */
+    pushq %r13							/* column counter */
+    pushq %r14							/* pointer to input Image struct */
+    pushq %r15							/* pointer to output Image struct */
+
+	movq %rdi, %r14
+	movq %rsi, %r15
+
+	/* Update output image dimensions */
+	movl IMAGE_HEIGHT_OFFSET(%r14), %eax	/* store input image height */
+	addl %eax, %eax							/* output height = input height * 2 */
+	movl %eax, IMAGE_HEIGHT_OFFSET(%r15)
+	movl IMAGE_WIDTH_OFFSET(%r14), %eax		/* store input image width */
+	addl %eax, %eax							/* output width = input width * 2 */
+	movl %eax, IMAGE_WIDTH_OFFSET(%r15)
+
+	/* Find loop limitations */
+    movl IMAGE_WIDTH_OFFSET(%r14), %r8d    	/* input width */
+    movl IMAGE_HEIGHT_OFFSET(%r14), %r9d   	/* input height */
+	movl $0, %r12d
+.Louter:
+    movl $0, %r13d     						/* Initialize column counter when iterating new row */        	
+.Linner:
+    /* Load pixel in the input image based on current row/column index */
+    movq %r14, %rdi                        /* Pointer to input image */
+    movl %r13d, %esi                       /* column index */
+    movl %r12d, %edx                       /* row index */
+    call compute_index          
+	movq IMAGE_DATA_OFFSET(%r14), %rcx
+    movl (%rcx,%rax,4), %ebx               /* Load pixel to ebx */
+
+	/* Extract r+g+b+alpha component individually */
+    movl %ebx, %edi                        
+    call get_r
+    movl %eax, -4(%rbp)                    /* Store red component in -4 offsets */
+    movl %ebx, %edi
+    call get_g
+    movl %eax, -8(%rbp)                    /* Store green component in -8 offsets */
+    movl %ebx, %edi
+    call get_b
+    movl %eax, -12(%rbp)                   /* Store blue component in -12 offsets */
+    movl %ebx, %edi
+    call get_a
+    movl %eax, -16(%rbp)                   /* Store alpha component in -16 offsets */
+
+	/* Create r pixel */
+	movl -4(%rbp), %edi                   
+    movl $0, %esi                       
+    movl $0, %edx                        
+    movl -16(%rbp), %ecx                 
+    call make_pixel
+    movl %eax, -20(%rbp)					/* Store red pixel in -20 offsets */
+    /* Create g pixel */
+    movl $0, %edi                         
+    movl -8(%rbp), %esi                   
+    movl $0, %edx                    
+    movl -16(%rbp), %ecx                   
+    call make_pixel
+    movl %eax, -24(%rbp)					/* Store green pixel in -24 offsets */
+    /* Create b pixel */
+    movl $0, %edi                     
+    movl $0, %esi                     
+    movl -12(%rbp), %edx                  
+    movl -16(%rbp), %ecx                 
+    call make_pixel
+    movl %eax, -28(%rbp)					/* Store blue pixel in -28 offsets */
+
+	/* Update 4 quadrants */
+    /* Quadrant A */
+    movq %r15, %rdi                        
+    movl %r13d, %esi                       
+    movl %r12d, %edx                       
+    call compute_index						/* Quadrant A index = current index */
+    movq IMAGE_DATA_OFFSET(%r15), %rcx
+    movl %ebx, (%rcx,%rax,4)
+
+    /* Quadrant B */
+	movq %r15, %rdi
+    movl %r13d, %esi
+    addl %r8d, %esi                        	/* Quadrant B column index = current index + input image width */
+	movq IMAGE_DATA_OFFSET(%r15), %rcx
+    call compute_index
+	movl -20(%rbp), %edx   					/* Load red pixel value to edx */
+	movl %edx, (%rcx,%rax,4)				/* to prevent mismatch in dimensions */
+
+    /* Quadrant C */
+    movq %r15, %rdi
+	movl %r13d, %esi
+    movl %r12d, %edx
+    addl %r9d, %edx                        /* Quadrant C row index = current index + input image height */
+    call compute_index
+    movq IMAGE_DATA_OFFSET(%r15), %rcx
+    movl -24(%rbp), %edx
+	movl %edx, (%rcx,%rax,4)
+
+    /* Quadrant D */
+    movq %r15, %rdi
+	movl %r13d, %esi
+    addl %r8d, %esi                        /* Quadrant D column index = current index + input image width */
+    movl %r12d, %edx
+    addl %r9d, %edx                        /* Quadrant D row index = current index + input image height */
+    call compute_index
+    movq IMAGE_DATA_OFFSET(%r15), %rcx
+    movl -28(%rbp), %edx
+	movl %edx, (%rcx,%rax,4)
+
+    incl %r13d								/* Increment column counter */
+    cmpl %r8d, %r13d
+    jl .Linner								/* < input image width */
+    incl %r12d								/* Increment row counter */
+    cmpl %r9d, %r12d
+    jl .Louter								/* < input image height */
+
+	/* epilogue */
+    popq %r15
+    popq %r14
+    popq %r13
+    popq %r12
+    addq $64, %rsp
+    popq %rbp
 	ret
 
 /*
