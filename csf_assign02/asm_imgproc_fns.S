@@ -403,8 +403,8 @@ imgproc_fade:
  *    (vertical split, horizontal split, and the two diagonal splits.)
  *
  * Parameters:
- *   input_img  - pointer to the input Image
- *   output_img - pointer to the output Image (in which the transformed
+ *   %rdi  - pointer to the input Image
+ *   %rsi  - pointer to the output Image (in which the transformed
  *                pixels should be stored)
  *
  * Returns:
@@ -413,7 +413,66 @@ imgproc_fade:
  */
 	.globl imgproc_kaleidoscope
 imgproc_kaleidoscope:
-	/* TODO: implement */
+	movl (%rdi), %r8d // move width to output
+	movl %r8d, (%rsi)
+	movl 4(%rdi), %r9d // move height to output
+	movl %r9d, 4(%rsi) 
+	movl $0, %eax  //prepare for transwformation fail output
+	cmpl %r8d, %r9d // compare width and height
+	jne .Lreturn  // if not equal, return 
+	movq 8(%rdi), %r14 // %r14 is data[] for input image
+	movq 8(%rsi), %r15 // %r15 is data[] for output image
+	imulq %r8, %r9 //%r9 stores width * width
+	movl %r8d, %r10d // %r10 is the "fake width" for width is odd case
+	shr $1, %r10d 
+	shl $1, %r10d
+	cmpl %r8d, %r10d //check if width is even
+	je .Lcontinue  
+	movl %r8d, %r10d  // if no even %r10 = %r8 + 1
+	addl $1, %r10d  
+.Lcontinue:
+	movl %r10d, %r11d 
+	shr $1, %r11d //%r11 is %r10/2 	
+	movl $0, %r13d // r13 is the index of the loop
+.Lloop:
+	cmpl %r9d, %r13d // compare index with width*width
+	jge .Lsuccess
+	movl %r13d, %eax // %eax now stores the index
+	cltd   // extension, ready for division
+	idivl %r8d // divide index by width to determine row_idx and col_idx 
+	cmpl %r11d, %eax // compre row_idx and width/2
+	jl .Lrowfinish
+	movl %eax, %r12d // if row_idx >= width/2, map it up
+	movl %r10d, %eax
+	subl %r12d, %eax
+	subl $1, %eax	
+.Lrowfinish:
+	cmpl %r11d, %edx // compare col_idx and width/2
+	jl .Lcolfinish
+	movl %edx, %r12d // if col_idx >= width/2, map it left
+	movl %r10d, %edx
+	subl %r12d, %edx
+	subl $1, %edx		
+.Lcolfinish:
+	cmpl %edx, %eax // compare row_idx and col_idx
+	jle .Lindexfinish
+	movl %eax, %r12d // if row_idx > col_idx, map it through the diagnal
+	movl %edx, %eax
+	movl %r12d, %edx
+.Lindexfinish:
+	imull %r8d, %eax // calculate the corresponding idx in input image
+	addl %edx, %eax
+	imull $4, %eax  // time 4 for memory address edition
+	addq %rax, %r14  // get data[i] in input image
+	movl (%r14), %ebx
+	subq %rax, %r14
+	movl %ebx, (%r15) // store it to output image data
+	addq $4, %r15 
+	inc %r13d  //update loop index
+	jmp .Lloop	
+.Lsuccess:
+	movl $1, %eax // prepare output for successful transformation
+.Lreturn:
 	ret
 
 	/* This avoids linker warning about executable stack */
