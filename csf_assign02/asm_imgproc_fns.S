@@ -132,10 +132,35 @@ to_grayscale:
 	call make_pixel // call make_pixel and store output in %eax
         ret
 
-
+/*
+ * int64_t gradient( int64_t x, int64_t max )
+ * 
+ * Calculate the gradient for the input row/column coordinate
+ * 
+ * Parameters:
+ *   %rdi - input row/column coordinate
+ *	 %rsi - number of pixels in that row or column
+ * 	 
+ * Returns:
+ *   %rax - store the calculated gradient of the input row/column coordinate
+ */
 		.globl gradient
 gradient:
-		ret
+	imulq $2000000000, %rdi					/* 2000000000 * x */
+	movq %rdi, %rax							/* move the multiplication to rax for divisor */
+	imulq $1000000, %rsi					/* 1000000 * max */
+	movq %rsi, %rcx							/* move the multiplication to rcx for dividend*/
+	cqto									/* convert %rax to %rdx:%rax */
+	idivq %rcx								/* do division: divide %rdx:rax by %rcx */
+
+	subq $1000, %rax						/* subtract 1000 from (2000000000 * x)/(1000000 * max) */
+	movq %rax, %rdx
+	imulq  %rdx, %rax						/* square the result */
+
+	movq $1000000, %rcx						/* return 1000000 - squared result */
+	subq %rax, %rcx
+	movq %rcx, %rax
+	ret
 
 /*
  * int32_t compute_index( struct Image *img, int32_t col, int32_t row )
@@ -153,7 +178,7 @@ gradient:
 		.globl compute_index
 compute_index:
 	movl IMAGE_WIDTH_OFFSET(%rdi), %eax		/* Load the image width to eax */
-	imull %edx, %eax							/* index = row * img->width + col */
+	imull %edx, %eax						/* index = row * img->width + col */
 	addl %esi, %eax
 	cltq									/* signed extension to 64-bits */
 	ret
