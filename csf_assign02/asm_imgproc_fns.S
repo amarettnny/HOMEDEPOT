@@ -144,11 +144,11 @@ to_grayscale:
  * Returns:
  *   %rax - store the calculated gradient of the input row/column coordinate
  */
-		.globl gradient
+ 		.globl gradient
 gradient:
-	imulq $2000000000, %rdi					/* 2000000000 * x */
+	imulq $2000, %rdi					    /* (2000000000 * x) / (1000000 * n) = 2000 * x / n*/
 	movq %rdi, %rax							/* move the multiplication to rax for divisor */
-	imulq $1000000, %rsi					/* 1000000 * max */
+
 	movq %rsi, %rcx							/* move the multiplication to rcx for dividend*/
 	cqto									/* convert %rax to %rdx:%rax */
 	idivq %rcx								/* do division: divide %rdx:rax by %rcx */
@@ -161,6 +161,7 @@ gradient:
 	subq %rax, %rcx
 	movq %rcx, %rax
 	ret
+
 
 /*
  * int32_t compute_index( struct Image *img, int32_t col, int32_t row )
@@ -390,10 +391,130 @@ imgproc_grayscale:
  *   %rdi - pointer to the input Image
  *   %rsi - pointer to the output Image
  */
-	.globl imgproc_fade
+.globl imgproc_fade
 imgproc_fade:
-	/* TODO: implement */
-	ret
+    /* prologue to create ABI-compliant stack frame */
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %rbx               
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    subq $64, %rsp          
+
+    /*  Copy width and height from input to output */
+    movl IMAGE_WIDTH_OFFSET(%rdi), %eax   
+    movl %eax, IMAGE_WIDTH_OFFSET(%rsi)   
+    movl IMAGE_HEIGHT_OFFSET(%rdi), %eax  
+    movl %eax, IMAGE_HEIGHT_OFFSET(%rsi)  
+
+    /*  Compute total number of pixels */
+    movl IMAGE_WIDTH_OFFSET(%rdi), %r8d                  /*  r8d = width */
+    movl IMAGE_HEIGHT_OFFSET(%rdi), %r9d                 /*  r9d = height */
+    movl %r8d, %r12d                     
+    imull %r9d, %r12d                                     /*  r12d = width * height */
+
+    movq IMAGE_DATA_OFFSET(%rdi), %r13                   /*  r13 = input image data pointer */
+    movq IMAGE_DATA_OFFSET(%rsi), %r14                   /*  r14 = output image data pointer */
+
+    /*  Load constant DENOM = 1000000000000 to r15 */
+    movq $1000000000000, %r15
+
+    movq $0, %rbx                                      /*  loop index i = 0 */
+.Lfade:
+    cmpq %r12, %rbx                                  /*  continue loop until total pixels >= i */
+    jge .Lfade_epilogue
+
+    /*  Compute row and column index */
+    movl %ebx, %eax      
+    cltd                                             /*  sign extend eax into edx:eax for division */
+    idivl %r8d            
+    movl %eax, %r10d                                 /*  row_index = i / input_img width */
+    movl %edx, %r11d                                 /*  column_index = i % input_img width */
+
+    /*  Load current pixel */
+    movl (%r13, %rbx, 4), %edi  
+    movl %edi, -4(%rbp)                              /*  store pixel at -4(%rbp) */
+
+    /*  Extract r, g, b colors */
+    movl -4(%rbp), %edi
+    call get_r
+    movl %eax, -8(%rbp)                              /*  store red at -8(%rbp) */
+
+    movl -4(%rbp), %edi
+    call get_g
+    movl %eax, -12(%rbp)                             /*  store green at -12(%rbp) */
+
+    movl -4(%rbp), %edi
+    call get_b
+    movl %eax, -16(%rbp)                             /*  store blue at -16(%rbp) */
+
+    movl -4(%rbp), %edi
+    call get_a
+    movl %eax, -20(%rbp)                             /*  store alpha at -20(%rbp) */
+
+    /*  Compute row gradient tr */
+    movl %r10d, %edi          
+    movl %r9d, %esi           
+    call gradient
+    movq %rax, -32(%rbp)                             /*  store tr at -32(%rbp) */
+
+    /*  Compute column gradient tc */
+    movl %r11d, %edi                     
+    movl %r8d, %esi          
+    call gradient
+    movq %rax, %rcx                                  /*  store tc in rcx */
+
+    movq -32(%rbp), %rdx                             /*  load tr into rdx */
+    imulq %rcx, %rdx                                 /*  rdx = tr * tc (fade factor) */
+    movq %rdx, -56(%rbp)                             /*  save fade factor at -56(%rbp) */
+
+    /*  fadeR = (fade factor * red) / DENOM */
+    movq -56(%rbp), %rax     
+    movslq -8(%rbp), %rsi      
+    imulq %rsi, %rax                                  /*  rax = fade factor * red */
+    cqto                                              /*  sign extend rax into rdx:rax */
+    idivq %r15                                        /*  divide by DENOM */
+    movl  %eax, -40(%rbp)                             /*  store faded red at -40(%rbp) */
+
+    /*  fadeG = (fade factor * green) / DENOM */
+    movq -56(%rbp), %rax                                
+    movslq -12(%rbp), %rsi     
+    imulq %rsi, %rax         
+    cqto
+    idivq %r15
+    movl %eax, -44(%rbp)                              /*  store faded green at -44(%rbp) */
+
+    /*  fadeB = (fade factor * blue) / DENOM */
+    movq    -56(%rbp), %rax     
+    movslq  -16(%rbp), %rsi     
+    imulq   %rsi, %rax         
+    cqto
+    idivq   %r15
+    movl    %eax, -48(%rbp)                           /*  store faded blue at -48(%rbp) */
+
+    /*  create output pixel using faded components */
+    movl    -40(%rbp), %edi    
+    movl    -44(%rbp), %esi    
+    movl    -48(%rbp), %edx    
+    movl    -20(%rbp), %ecx    
+    call    make_pixel                                /*  returns new pixel in eax */
+
+    /*  store the new pixel in output image */
+    movl    %eax, (%r14, %rbx, 4)                 
+
+    incq    %rbx                                      /*  loop index i++ */
+    jmp     .Lfade
+.Lfade_epilogue:
+    addq    $64, %rsp
+    popq    %rbx
+    popq    %r12
+    popq    %r13
+    popq    %r14
+    popq    %r15
+    popq    %rbp
+    ret
 
 /*
  * Render a "kaleidoscope" transformation of input_img in output_img.
