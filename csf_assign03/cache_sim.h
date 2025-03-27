@@ -36,8 +36,8 @@ struct Cache{
 
     Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_back, std::string evic_policy);
 
-    void loading();
-    void storing();
+    void loading(unsigned int mem_addr);
+    void storing(unsigned int mem_addr);
 
     void print_stats();
 };

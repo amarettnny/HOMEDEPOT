@@ -1,4 +1,5 @@
 #include "cache_sim.h"
+#include "cache_sim.cpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -42,9 +43,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
-    return 1;
-  }
+  //if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
+  //  return 1;
+  //}
 
   Cache cache_sim(sets, blocks, bytes, write_alloc, write_back, evic_policy);
 
@@ -56,9 +57,9 @@ int main(int argc, char **argv) {
     sscanf(line.c_str(), "%c %lx %d", &op, &addr, &data);
 
     if (op == 'l'){
-      cache_sim.loading();
+	cache_sim.loading(addr);
     } else if (op == 's'){
-      cache_sim.storing();
+      //cache_sim.storing();
     } else{
       fprintf(stderr, "Invalid operation to Cache. \n");
     }

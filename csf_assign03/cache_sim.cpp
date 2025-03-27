@@ -5,7 +5,7 @@
 #include <ratio>
 #include <string>
 #include "cache_sim.h"
-
+#include <cmath>
 using namespace std;
 
 bool is_valid_num(int x) {
@@ -26,3 +26,72 @@ bool is_valid_argument(int sets, int blocks, bool write_alloc, bool write_back) 
     return is_valid;
 }
 
+Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_back, std::string evic_policy)
+    : num_sets(num_sets), blocks(blocks), bytes(bytes), write_alloc(write_alloc), write_back(write_back),
+    evic_policy(evic_policy), loads(0), stores(0), load_hits(0), load_misses(0), store_hits(0), store_misses(0), total_cycles(0){
+    sets.resize(num_sets);
+    for(Set& set : sets){
+        set.blocks.resize(blocks);
+	int idx = 0;
+	for(Block& block: set.blocks){
+	    block.valid = 0;
+	    block.dirty = 0;
+	    block.tag = 0;
+	    block.load_ts = idx;
+	    block.access_ts = idx;
+	}
+    } 
+}
+
+
+void Cache::loading(unsigned int mem_addr){
+    loads += 1;
+    unsigned int index_len = log2(num_sets);
+    int index_cache = mem_addr >> (32 - index_len);
+    Set& curr_set = sets[index_cache];
+    unsigned int blk_cnt = mem_addr & (0xffffffff >> index_len);
+    if (evic_policy == "lru"){
+	bool hit = false;
+	int index_blk = -1;
+	int blk_access = -1;
+        for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+	    Block& block = curr_set.blocks[i];
+	    if (block.tag == blk_cnt){
+	        hit = true;
+		blk_access = block.access_ts;
+		block.access_ts = 0;
+		index_blk = i;
+		break;
+	    }
+	}
+	if (hit == true){
+	    load_hits += 1;
+	    for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+	        if((int)curr_set.blocks[i].access_ts < blk_access && (int)i != index_blk){
+		    curr_set.blocks[i].access_ts += 1;
+		}
+	    }
+	} else{
+	    load_misses += 1;
+	    for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+	        if((int)curr_set.blocks[i].access_ts == blocks - 1){
+		    curr_set.blocks[i].access_ts = 0;
+		} else{
+		    curr_set.blocks[i].access_ts += 1;
+		}
+	    }
+	}
+   }
+ 
+}
+
+void Cache::print_stats(){
+    std::cout << "Total loads: " << loads << endl;
+    std::cout << "Total stores: " << stores << endl;
+    std::cout << "Load hits: " << load_hits << endl;
+    std::cout << "Load misses: " << load_misses << endl;
+    std::cout << "Store hits: " << store_hits << endl;
+    std::cout << "Store misses: " << store_misses << endl;
+    std::cout << "Total cycles: " << total_cycles << endl;
+
+}
