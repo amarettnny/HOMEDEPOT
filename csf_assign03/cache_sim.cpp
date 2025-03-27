@@ -133,7 +133,7 @@ void Cache::storing(unsigned int mem_addr) {
       if (write_back) {
         curr_set.blocks[index_blk].dirty = true;
       } else {
-        total_cycles += 100 * (bytes / 4); // write-through cost
+        total_cycles += 100 ; // write-through cost
       }
     } else {
       store_misses += 1;
@@ -154,7 +154,7 @@ void Cache::storing(unsigned int mem_addr) {
             if (write_back) {
               curr_set.blocks[i].dirty = true;
             } else {
-              total_cycles += 100 * (bytes / 4); // write-through
+              total_cycles += 100 ; // write-through
             }
           } else {
             curr_set.blocks[i].access_ts += 1;
@@ -162,7 +162,7 @@ void Cache::storing(unsigned int mem_addr) {
         }
       } else {
         // No write-allocate: directly write to memory
-        total_cycles += 100 * (bytes / 4);
+        total_cycles += 100;
       }
     }
   }
