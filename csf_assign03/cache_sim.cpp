@@ -47,17 +47,17 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_b
 void Cache::loading(unsigned int mem_addr){
     loads += 1;
     unsigned int index_len = log2(num_sets);
-    unsigned int index_blk = log2(bytes);
-    int index_cache = (mem_addr >> index_blk) & (num_sets - 1);
+    unsigned int off_len = log2(bytes);
+    int index_cache = (mem_addr >> off_len) & (num_sets - 1);
     Set& curr_set = sets[index_cache];
-    unsigned int blk_cnt = mem_addr >> (index_len + index_blk);
+    unsigned int blk_cnt = mem_addr >> (index_len + off_len);
     if (evic_policy == "lru"){
 	bool hit = false;
 	int index_blk = -1;
 	int blk_access = -1;
         for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
 	    Block& block = curr_set.blocks[i];
-	    if (block.tag == blk_cnt){
+	    if (block.tag == blk_cnt && block.valid){
 	        hit = true;
 		blk_access = block.access_ts;
 		block.access_ts = 0;
@@ -78,6 +78,7 @@ void Cache::loading(unsigned int mem_addr){
 	        if((int)curr_set.blocks[i].access_ts == blocks - 1){
 		    curr_set.blocks[i].access_ts = 0;
 		    curr_set.blocks[i].tag = blk_cnt;
+		    curr_set.blocks[i].valid = true;
 		} else{
 		    curr_set.blocks[i].access_ts += 1;
 		}
