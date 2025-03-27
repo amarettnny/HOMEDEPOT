@@ -70,7 +70,7 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc,
       block.dirty = false;
       block.tag = 0;
       block.load_ts = idx;
-      block.access_ts = idx;
+      block.access_ts = idx; // ts are set from 0, 1, ... to block-1 at the beginning
       idx++;
     }
   }
@@ -83,7 +83,7 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc,
  */
 void Cache::loading(unsigned int mem_addr) {
   loads += 1;
-  total_cycles += 1;
+  total_cycles += 1; // each load has a load from cache
   unsigned int index_len = log2(num_sets);
   unsigned int off_len = log2(bytes);
   int index_cache = (mem_addr >> off_len) & (num_sets - 1);
@@ -98,7 +98,7 @@ void Cache::loading(unsigned int mem_addr) {
       if (block.tag == blk_cnt && block.valid) {
         hit = true;
         blk_access = block.access_ts;
-        block.access_ts = 0;
+        block.access_ts = 0; // if hit, update the lru time
         index_blk = i;
         break;
       }
@@ -108,13 +108,15 @@ void Cache::loading(unsigned int mem_addr) {
       for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
         if ((int)curr_set.blocks[i].access_ts < blk_access &&
             (int)i != index_blk) {
-          curr_set.blocks[i].access_ts += 1;
+          curr_set.blocks[i].access_ts += 1; 
+	  //if hit, increase those lru time that is smaller than the hitted by 1, maintain the visit order
         }
       }
     } else {
       load_misses += 1;
       for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
         if ((int)curr_set.blocks[i].access_ts == blocks - 1) {
+	  //block with largest order is the least recent visited, replace this block, reset visit order to 0
           curr_set.blocks[i].access_ts = 0;
           curr_set.blocks[i].tag = blk_cnt;
           curr_set.blocks[i].valid = true;
@@ -124,7 +126,7 @@ void Cache::loading(unsigned int mem_addr) {
             curr_set.blocks[i].dirty = false;
           }
         } else {
-          curr_set.blocks[i].access_ts += 1;
+          curr_set.blocks[i].access_ts += 1;// increase other lru to maintain the order
         }
       }
     }
