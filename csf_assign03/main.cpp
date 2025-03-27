@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   }
 
   // Check invalid cache arguments
-  if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
+  if (!is_valid_argument(sets, blocks, bytes, write_alloc, write_back)) {
     return 1;
   }
 

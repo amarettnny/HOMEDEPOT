@@ -85,13 +85,14 @@ bool is_valid_num(int x);
  * Parameters:
  *  sets: number of sets in the cache
  *  blocks: number of blocks in a set
+ *  bytes: number of bytes in a block
  *  write_alloc: true is write-allocate, false if no-write-allocate
  *  write_back: true if write-back, false if write-through
  *
  * Returns:
  *  true if the arguments combination is valid, false if not
  */
-bool is_valid_argument(int sets, int blocks, bool write_alloc, bool write_back);
+bool is_valid_argument(int sets, int blocks, int bytes, bool write_alloc, bool write_back);
 
 
 #endif

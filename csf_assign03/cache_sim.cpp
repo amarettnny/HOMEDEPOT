@@ -15,7 +15,7 @@ using namespace std;
  * Returns:
  *  true if x is a power of 2, false if not
  */
-bool is_valid_num(int x) { return x > 4 && (x & (x - 1)) == 0; }
+bool is_valid_num(int x) { return x > 0 && (x & (x - 1)) == 0; }
 
 /*
  * Check whether the input cache size(sets), set sizes(blocks), and store
@@ -30,10 +30,10 @@ bool is_valid_num(int x) { return x > 4 && (x & (x - 1)) == 0; }
  * Returns:
  *  true if the arguments combination is valid, false if not
  */
-bool is_valid_argument(int sets, int blocks, bool write_alloc,
+bool is_valid_argument(int sets, int blocks, int bytes, bool write_alloc,
                        bool write_back) {
   bool is_valid = true;
-  if (!is_valid_num(sets) || !is_valid_num(blocks) || blocks < 4) {
+  if (!is_valid_num(sets) || !is_valid_num(blocks) || !is_valid_num(bytes) || bytes < 4) {
     is_valid = false;
     fprintf(stderr, "Invalid sets/blocks number.\n");
   }
