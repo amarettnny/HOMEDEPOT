@@ -34,8 +34,8 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_b
         set.blocks.resize(blocks);
 	int idx = 0;
 	for(Block& block: set.blocks){
-	    block.valid = 0;
-	    block.dirty = 0;
+	    block.valid = false;
+	    block.dirty = false;
 	    block.tag = 0;
 	    block.load_ts = idx;
 	    block.access_ts = idx;
@@ -46,6 +46,7 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_b
 
 void Cache::loading(unsigned int mem_addr){
     loads += 1;
+    total_cycles += 1;
     unsigned int index_len = log2(num_sets);
     unsigned int off_len = log2(bytes);
     int index_cache = (mem_addr >> off_len) & (num_sets - 1);
@@ -79,6 +80,11 @@ void Cache::loading(unsigned int mem_addr){
 		    curr_set.blocks[i].access_ts = 0;
 		    curr_set.blocks[i].tag = blk_cnt;
 		    curr_set.blocks[i].valid = true;
+		    total_cycles += 100 * (bytes / 4);
+		    if (curr_set.blocks[i].dirty == true){
+		        total_cycles += 100 * (bytes / 4);
+			curr_set.blocks[i].dirty =false;
+		    }
 		} else{
 		    curr_set.blocks[i].access_ts += 1;
 		}
