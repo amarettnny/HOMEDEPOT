@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
   }
 
   if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
-    fprintf(stderr, "Invalid cache parameters. \n");
     return 1;
   }
 
@@ -65,7 +64,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  
+  cache_sim.print_stats();
 
   return 0;
 }
