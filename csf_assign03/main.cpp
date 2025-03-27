@@ -1,9 +1,9 @@
+#include "cache_sim.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
-#include "cache_sim.h"
 
 int main(int argc, char **argv) {
   // Read command-line argument
@@ -38,22 +38,34 @@ int main(int argc, char **argv) {
   }
 
   if (evic_policy != "lru" && evic_policy != "fifo") {
-    fprintf(stderr, "Invalid eviction method");
+    fprintf(stderr, "Invalid eviction method. \n");
     return 1;
   }
 
-  if (!is_valid_argument(sets, blocks, write_alloc, write_back)){
-    fprintf(stderr, "Invalid cache parameters");
+  if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
+    fprintf(stderr, "Invalid cache parameters. \n");
     return 1;
   }
 
-  // a while process to read all text input
-  // if 'l' --> cache_write()
-  // if 's' --> cache_read()
+  Cache cache_sim(sets, blocks, bytes, write_alloc, write_back, evic_policy);
+
+  std::string line;
+  while (std::getline(std::cin, line)) {
+    char op;
+    uint64_t addr;
+    int data;     // We're ignoreing this data for this assignment
+    sscanf(line.c_str(), "%c %lx %d", &op, &addr, &data);
+
+    if (op == 'l'){
+      cache_sim.loading();
+    } else if (op == 's'){
+      cache_sim.storing();
+    } else{
+      fprintf(stderr, "Invalid operation to Cache. \n");
+    }
+  }
 
   
-
-
 
   return 0;
 }

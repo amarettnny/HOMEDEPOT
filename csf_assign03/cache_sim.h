@@ -16,14 +16,14 @@ struct Set{
     std::vector<Block> blocks;
 };
 
-struct Cache_sim{
+struct Cache{
     std::vector<Set> sets;
     int num_sets;
-    int blocks_per_set;
-    int bytes_per_block;
-    bool write_allocate;
+    int blocks;
+    int bytes;
+    bool write_alloc;
     bool write_back;
-    bool is_lru;
+    std::string evic_policy;
 
     // Stats
     int loads;
@@ -32,6 +32,13 @@ struct Cache_sim{
     int load_misses;
     int store_hits;
     int store_misses;
+    int total_cycles;
+
+    Cache(int num_sets, int blocks, int bytes, bool write_alloc, bool write_back, std::string evic_policy);
+
+    void loading();
+    void storing();
+
 };
 
 bool is_valid_argument(int sets, int blocks, bool write_alloc, bool write_back);
