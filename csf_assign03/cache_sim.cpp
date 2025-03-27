@@ -15,11 +15,11 @@ bool is_valid_argument(int sets, int blocks, bool write_alloc,
   bool is_valid = true;
   if (!is_valid_num(sets) || !is_valid_num(blocks)) {
     is_valid = false;
-    fprintf(stderr, "Invalid sets/blocks number. \n");
+    fprintf(stderr, "Invalid sets/blocks number.\n");
   }
   if (!write_alloc && write_back) {
     is_valid = false;
-    fprintf(stderr, "write-back and no-write-allocate were both specified. \n");
+    fprintf(stderr, "write-back and no-write-allocate were both specified.\n");
   }
   return is_valid;
 }
@@ -40,6 +40,7 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc,
       block.tag = 0;
       block.load_ts = idx;
       block.access_ts = idx;
+      idx++;
     }
   }
 }

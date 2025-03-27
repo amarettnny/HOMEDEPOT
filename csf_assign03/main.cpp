@@ -1,5 +1,4 @@
 #include "cache_sim.h"
-#include "cache_sim.cpp"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -10,7 +9,7 @@
 int main(int argc, char **argv) {
   // Read command-line argument
   if (argc != 7) {
-    fprintf(stderr, "Missing input argument for cache simulation. \n");
+    fprintf(stderr, "Missing input argument for cache simulation.\n");
     return 1; // nonzero exit code
   }
 
@@ -21,18 +20,18 @@ int main(int argc, char **argv) {
   bool write_alloc, write_back;
   std::string evic_policy = argv[6];
 
-  if (strcmp(argv[4], "write-allocate")) {
+  if (strcmp(argv[4], "write-allocate") == 0) {
     write_alloc = true;
-  } else if (strcmp(argv[4], "no-write-allocate")) {
+  } else if (strcmp(argv[4], "no-write-allocate") == 0) {
     write_alloc = false;
   } else {
     fprintf(stderr, "Invalid write policy.\n");
     return 1;
   }
 
-  if (strcmp(argv[5], "write-back")) {
+  if (strcmp(argv[5], "write-back") == 0) {
     write_back = true;
-  } else if (strcmp(argv[5], "write-through")) {
+  } else if (strcmp(argv[5], "write-through") == 0) {
     write_back = false;
   } else {
     fprintf(stderr, "Invalid write method.\n");
@@ -40,12 +39,12 @@ int main(int argc, char **argv) {
   }
 
   if (evic_policy != "lru" && evic_policy != "fifo") {
-    fprintf(stderr, "Invalid eviction method. \n");
+    fprintf(stderr, "Invalid eviction method.\n");
     return 1;
   }
 
   if (!is_valid_argument(sets, blocks, write_alloc, write_back)) {
-   return 1;
+    return 1;
   }
 
   Cache cache_sim(sets, blocks, bytes, write_alloc, write_back, evic_policy);
@@ -54,15 +53,15 @@ int main(int argc, char **argv) {
   while (std::getline(std::cin, line)) {
     char op;
     uint64_t addr;
-    int data;     // We're ignoreing this data for this assignment
+    int data;  // We're ignoring this data for this assignment
     sscanf(line.c_str(), "%c %lx %d", &op, &addr, &data);
 
     if (op == 'l'){
       cache_sim.loading(addr);
     } else if (op == 's'){
       cache_sim.storing(addr);
-    } else{
-      fprintf(stderr, "Invalid operation to Cache. \n");
+    } else {
+      fprintf(stderr, "Invalid operation to Cache.\n");
     }
   }
 
