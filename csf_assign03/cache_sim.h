@@ -42,6 +42,7 @@ struct Cache{
     void print_stats();
 };
 
+bool is_valid_num(int x);
 bool is_valid_argument(int sets, int blocks, bool write_alloc, bool write_back);
 
 
