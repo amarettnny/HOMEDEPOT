@@ -33,7 +33,8 @@ bool is_valid_num(int x) { return x > 0 && (x & (x - 1)) == 0; }
 bool is_valid_argument(int sets, int blocks, int bytes, bool write_alloc,
                        bool write_back) {
   bool is_valid = true;
-  if (!is_valid_num(sets) || !is_valid_num(blocks) || !is_valid_num(bytes) || bytes < 4) {
+  if (!is_valid_num(sets) || !is_valid_num(blocks) || !is_valid_num(bytes) ||
+      bytes < 4) {
     is_valid = false;
     fprintf(stderr, "Invalid sets/blocks number.\n");
   }
@@ -70,11 +71,13 @@ Cache::Cache(int num_sets, int blocks, int bytes, bool write_alloc,
       block.dirty = false;
       block.tag = 0;
       block.load_ts = idx;
-      block.access_ts = idx; // ts are set from 0, 1, ... to block-1 at the beginning
+      block.access_ts =
+          idx; // ts are set from 0, 1, ... to block-1 at the beginning
       idx++;
     }
   }
 }
+
 /*
  * store the memory to cache from input mem_addr, update the cache and its stats
  * accordingly
@@ -94,59 +97,65 @@ void Cache::loading(unsigned int mem_addr) {
   unsigned int blk_cnt = mem_addr >> (index_len + off_len);
 
   if (evic_policy == "lru") {
-    bool hit = false;
-    int index_blk = -1;
-    int blk_access = -1;
+    loading_lru(curr_set, blk_cnt);
+  } else if (evic_policy == "fifo") {
+    // loading_fifo(curr_set, blk_cnt);
+  }
+}
 
-    // Search the set for a block with matching tag
+void Cache::loading_lru(Set &curr_set, unsigned int blk_cnt) {
+  bool hit = false;
+  int index_blk = -1;
+  int blk_access = -1;
+
+  // Search the set for a block with matching tag
+  for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+    Block &block = curr_set.blocks[i];
+    if (block.tag == blk_cnt && block.valid) {
+      hit = true;
+      blk_access = block.access_ts;
+      block.access_ts = 0; // if hit, update the lru time
+      index_blk = i;
+      break;
+    }
+  }
+
+  if (hit == true) {
+    load_hits += 1;
     for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-      Block &block = curr_set.blocks[i];
-      if (block.tag == blk_cnt && block.valid) {
-        hit = true;
-        blk_access = block.access_ts;
-        block.access_ts = 0; // if hit, update the lru time
-        index_blk = i;
-        break;
+      if ((int)curr_set.blocks[i].access_ts < blk_access &&
+          (int)i != index_blk) {
+        curr_set.blocks[i].access_ts += 1;
+        // if hit, increase those lru time that is smaller than the hitted by
+        // 1, maintain the visit order
       }
     }
-
-    if (hit == true) {
-      load_hits += 1;
-      for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-        if ((int)curr_set.blocks[i].access_ts < blk_access &&
-            (int)i != index_blk) {
-          curr_set.blocks[i].access_ts += 1;
-          // if hit, increase those lru time that is smaller than the hitted by
-          // 1, maintain the visit order
-        }
-      }
-    } else { // If not hit
-      // Replace LRU in the set
-      load_misses += 1;
-      for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-        if ((int)curr_set.blocks[i].access_ts == blocks - 1) {
-          // block with largest order is the least recent visited, replace this
-          // block, reset visit order to 0
-          curr_set.blocks[i].access_ts = 0;
-          curr_set.blocks[i].tag = blk_cnt;
-          curr_set.blocks[i].valid = true;
+  } else { // If not hit
+    // Replace LRU in the set
+    load_misses += 1;
+    for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+      if ((int)curr_set.blocks[i].access_ts == blocks - 1) {
+        // block with largest order is the least recent visited, replace this
+        // block, reset visit order to 0
+        curr_set.blocks[i].access_ts = 0;
+        curr_set.blocks[i].tag = blk_cnt;
+        curr_set.blocks[i].valid = true;
+        total_cycles += 100 * (bytes / 4);
+        if (curr_set.blocks[i].dirty == true) {
           total_cycles += 100 * (bytes / 4);
-          if (curr_set.blocks[i].dirty == true) {
-            total_cycles += 100 * (bytes / 4);
-            curr_set.blocks[i].dirty = false;
-          }
-        } else {
-          curr_set.blocks[i].access_ts +=
-              1; // increase other lru to maintain the order
+          curr_set.blocks[i].dirty = false;
         }
+      } else {
+        curr_set.blocks[i].access_ts +=
+            1; // increase other lru to maintain the order
       }
     }
   }
 }
 
 /*
- * store the memory to cache from input mem_addr, update the cache and its stats
- * accordingly
+ * Store the memory to cache from input mem_addr, update the cache and its stats
+ * accordingly.
  *
  * Parameters:
  *  mem_addr: input memopry address
@@ -164,68 +173,164 @@ void Cache::storing(unsigned int mem_addr) {
   unsigned int blk_cnt = mem_addr >> (index_len + off_len);
 
   if (evic_policy == "lru") {
-    bool hit = false;
-    int index_blk = -1;
-    int blk_access = -1;
+    storing_lru(curr_set, blk_cnt);
+  } else {
+    storing_fifo(curr_set, blk_cnt);
+  }
+}
 
-    // Search the set for a block with matching tag
+/*
+ * Helper function for storing when using LRU eviction policy.
+ *
+ * Parameters:
+ *  curr_set: the cache set in which the store operation is being performed
+ *  blk_cnt: the tag for identifying the cache block
+ */
+void Cache::storing_lru(Set &curr_set, unsigned int blk_cnt) {
+  bool hit = false;
+  int index_blk = -1;
+  int blk_access = -1;
+
+  // Search the set for a block with matching tag
+  for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+    Block &block = curr_set.blocks[i];
+    if (block.tag == blk_cnt && block.valid) {
+      hit = true;
+      blk_access = block.access_ts;
+      block.access_ts =
+          0; // lru policy updates the order on hit --> set most recent to 0
+      index_blk = i;
+      break;
+    }
+  }
+
+  if (hit == true) {
+    store_hits += 1;
+    // Add access timestamp for remaining blocks that are accessed before the
+    // target
     for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-      Block &block = curr_set.blocks[i];
-      if (block.tag == blk_cnt && block.valid) {
-        hit = true;
-        blk_access = block.access_ts;
-        block.access_ts = 0;
-        index_blk = i;
-        break;
+      if ((int)curr_set.blocks[i].access_ts < blk_access &&
+          (int)i != index_blk) {
+        curr_set.blocks[i].access_ts += 1;
       }
     }
-
-    if (hit == true) {
-      store_hits += 1;
-      // Add counters for remaining blocks
+    if (write_back) {
+      // Mark written (dirty) when write back
+      curr_set.blocks[index_blk].dirty = true;
+    } else {
+      total_cycles += 100; // write-through cost
+    }
+  } else {
+    store_misses += 1;
+    if (write_alloc) {
+      // When miss, load the block first
+      total_cycles += 100 * (bytes / 4);
       for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-        if ((int)curr_set.blocks[i].access_ts < blk_access &&
-            (int)i != index_blk) {
+        // look for block with highest access_ts
+        if ((int)curr_set.blocks[i].access_ts == blocks - 1) {
+          // Evict the least used block
+          if (curr_set.blocks[i].dirty == true) {
+            total_cycles += 100 * (bytes / 4);
+            curr_set.blocks[i].dirty = false;
+          }
+          curr_set.blocks[i].tag = blk_cnt;
+          curr_set.blocks[i].valid = true;
+          curr_set.blocks[i].access_ts = 0; // reset timestamp
+          if (write_back) {
+            curr_set.blocks[i].dirty = true;
+          } else {
+            total_cycles += 100; // write-through cost
+          }
+        } else {
           curr_set.blocks[i].access_ts += 1;
         }
       }
-
-      if (write_back) {
-        // Mark written (dirty) when write back
-        curr_set.blocks[index_blk].dirty = true;
-      } else {
-        total_cycles += 100; // write-through cost
-      }
     } else {
-      store_misses += 1;
+      // If no write-allocate --> directly write to memory
+      total_cycles += 100;
+    }
+  }
+}
 
-      if (write_alloc) {
-        // When miss, load the block first
-        total_cycles += 100 * (bytes / 4);
-        for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
-          if ((int)curr_set.blocks[i].access_ts == blocks - 1) {
-            // Evict the least used block 
-            if (curr_set.blocks[i].dirty == true) {
-              total_cycles += 100 * (bytes / 4);
-              curr_set.blocks[i].dirty = false;
-            }
-            curr_set.blocks[i].tag = blk_cnt;
-            curr_set.blocks[i].valid = true;
-            curr_set.blocks[i].access_ts = 0;
-            if (write_back) {
-              curr_set.blocks[i].dirty = true;
-            } else {
-              total_cycles += 100; // write-through cost
-            }
-          } else {
-            curr_set.blocks[i].access_ts += 1;
-          }
-        }
-      } else {
-        // If no write-allocate --> directly write to memory
-        total_cycles += 100;
+/*
+ * Helper function for storing when using FIFO eviction policy.
+ *
+ * Parameters:
+ *  curr_set: the cache set in which the store operation is being performed
+ *  blk_cnt: the tag for identifying the cache block
+ */
+void Cache::storing_fifo(Set &curr_set, unsigned int blk_cnt) {
+  bool hit = false;
+  int index_blk = -1;
+  // Search the set for a block with matching tag
+  for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+    Block &block = curr_set.blocks[i];
+    if (block.tag == blk_cnt &&
+        block.valid) { // fifo does not update order on hit
+      hit = true;
+      index_blk = i;
+      break;
+    }
+  }
+  if (hit) {
+    store_hits += 1;
+    if (write_back) {
+      curr_set.blocks[index_blk].dirty = true;
+    } else {
+      total_cycles += 100; // write-through cost on hit
+    }
+  } else {
+    store_misses += 1;
+    storing_miss_fifo(curr_set, blk_cnt);
+  }
+}
+
+/*
+ * Helper function for handling storing when hit misses and FIFO eviction
+ * policy is being used. 
+ *
+ * Parameters:
+ *  curr_set: the cache set in which the store operation is being performed
+ *  blk_cnt: the tag for identifying the cache block
+ */
+void Cache::storing_miss_fifo(Set &curr_set, unsigned int blk_cnt) {
+  if (write_alloc) {
+    // When miss, load the block first, add the penalty
+    total_cycles += 100 * (bytes / 4);
+    // Find the fifo candidate -> the block with the smallest load_ts
+    int fifo_index = 0;
+    unsigned int min_ts = curr_set.blocks[0].load_ts;
+    for (unsigned long int i = 1; i < curr_set.blocks.size(); i++) {
+      if (curr_set.blocks[i].load_ts < min_ts) {
+        min_ts = curr_set.blocks[i].load_ts;
+        fifo_index = i;
       }
     }
+
+    // If dirty, write back before update
+    if (curr_set.blocks[fifo_index].dirty) {
+      total_cycles += 100 * (bytes / 4);
+      curr_set.blocks[fifo_index].dirty = false;
+    }
+    // Update candidate with the new block
+    curr_set.blocks[fifo_index].tag = blk_cnt;
+    curr_set.blocks[fifo_index].valid = true;
+    // Set new timestamp -> set to maximum load_ts + 1 -> became last in
+    unsigned int max_ts = 0;
+    for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+      if (curr_set.blocks[i].load_ts > max_ts)
+        max_ts = curr_set.blocks[i].load_ts;
+    }
+    curr_set.blocks[fifo_index].load_ts = max_ts + 1;
+
+    if (write_back) {
+      curr_set.blocks[fifo_index].dirty = true;
+    } else {
+      total_cycles += 100; // write-through cost
+    }
+  } else {
+    // If no write-allocate --> directly write to memory
+    total_cycles += 100;
   }
 }
 

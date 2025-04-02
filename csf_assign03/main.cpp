@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
       cache_sim.storing(addr);
     } else {
       fprintf(stderr, "Invalid operation to Cache.\n");
+      return 1;
     }
   }
 
