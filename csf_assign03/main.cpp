@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
 
   // Print out the stats
   cache_sim.print_stats();
+  // cache_sim.print_effectiveness();
 
   return 0;
 }

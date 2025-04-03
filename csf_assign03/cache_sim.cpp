@@ -102,6 +102,7 @@ void Cache::loading(unsigned int mem_addr) {
     loading_fifo(curr_set, blk_cnt);
   }
 }
+
 /*
  * Helper function for loading when using fifo eviction policy.
  *
@@ -109,45 +110,47 @@ void Cache::loading(unsigned int mem_addr) {
  *  curr_set: the cache set in which the load operation is being performed
  *  blk_cnt: the tag for identifying the cache block
  */
-void Cache::loading_fifo(Set &curr_set, unsigned int blk_cnt){
+void Cache::loading_fifo(Set &curr_set, unsigned int blk_cnt) {
   bool hit = false;
   // searching the set for a block with matching tag
-  for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+  for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
     Block &block = curr_set.blocks[i];
-    if (block.tag == blk_cnt && block.valid){
+    if (block.tag == blk_cnt && block.valid) {
       hit = true;
       break;
     }
   }
 
-  if(hit){
+  if (hit) {
     load_hits += 1; // if hit, update stats
-  } else{
-    //if not hit, find the last block being loaded
-    //update its timestamp, and replace the data
+  } else {
+    // if not hit, find the last block being loaded
+    // update its timestamp, and replace the data
     load_misses += 1;
     unsigned int max_ts = 0;
     unsigned int min_ts = curr_set.blocks[0].load_ts;
     int index_fifo = 0;
-    for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
-      if(curr_set.blocks[i].load_ts > max_ts){
-	max_ts = curr_set.blocks[i].load_ts;
+    for (unsigned long int i = 0; i < curr_set.blocks.size(); i++) {
+      if (curr_set.blocks[i].load_ts > max_ts) {
+        max_ts = curr_set.blocks[i].load_ts;
       }
-      if(curr_set.blocks[i].load_ts < min_ts){
-	min_ts = curr_set.blocks[i].load_ts;
-	index_fifo = i;
+      if (curr_set.blocks[i].load_ts < min_ts) { // find the fifo candidate
+        min_ts = curr_set.blocks[i].load_ts;
+        index_fifo = i;
       }
     }
-    if (curr_set.blocks[index_fifo].dirty == true){
+    // If the candidate dirty, write it back first
+    if (curr_set.blocks[index_fifo].dirty == true) {
       curr_set.blocks[index_fifo].dirty = false;
       total_cycles += 100 * (bytes / 4);
     }
+    // Replace data
     curr_set.blocks[index_fifo].tag = blk_cnt;
     curr_set.blocks[index_fifo].valid = true;
-    curr_set.blocks[index_fifo].load_ts = max_ts + 1;
-    total_cycles += 100 * (bytes / 4); 
+    curr_set.blocks[index_fifo].load_ts =
+        max_ts + 1; // update timestamp to max -> last in
+    total_cycles += 100 * (bytes / 4);
   }
-
 }
 
 /*
@@ -341,7 +344,7 @@ void Cache::storing_fifo(Set &curr_set, unsigned int blk_cnt) {
 
 /*
  * Helper function for handling storing when hit misses and FIFO eviction
- * policy is being used. 
+ * policy is being used.
  *
  * Parameters:
  *  curr_set: the cache set in which the store operation is being performed
@@ -399,4 +402,33 @@ void Cache::print_stats() {
   std::cout << "Store hits: " << store_hits << endl;
   std::cout << "Store misses: " << store_misses << endl;
   std::cout << "Total cycles: " << total_cycles << endl;
+}
+
+void Cache::print_effectiveness() {
+  double total_accesses = loads + stores;
+  double hit_rate = 100.0 * (load_hits + store_hits) / total_accesses;
+  double total_misses = load_misses + store_misses;
+  double average_miss_penalty = 0.0;
+  if (total_misses > 0) {
+    average_miss_penalty = (total_cycles - total_accesses) / total_misses;
+  }
+
+  int address_bits = 32;   
+  int offset_bits = log2(bytes);   // Number of bits to represent block offset.
+  int index_bits = log2(num_sets); 
+  int tag_bits =
+      address_bits - index_bits - offset_bits; // Remaining bits for tag.
+
+  // Overhead = tag bits + 1 valid bit + 1 dirty bit.
+  int overhead_bits = tag_bits + 2;
+
+  // Convert to bytes
+  int overhead_bytes_per_block = (overhead_bits + 7) / 8;
+  int total_cache_size = num_sets * blocks * (bytes + overhead_bytes_per_block);
+
+  std::cout << "Hit Rate: " << hit_rate << "%" << std::endl;
+  std::cout << "Average Miss Penalty: " << average_miss_penalty << " cycles"
+            << std::endl;
+  std::cout << "Total Cache Size (including overhead): " << total_cache_size
+            << " bytes" << std::endl;
 }

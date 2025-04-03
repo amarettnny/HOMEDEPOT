@@ -115,6 +115,11 @@ struct Cache {
    * Print out the statistics of the simulation
    */
   void print_stats();
+
+  /*
+   * Helper function for best cache report, printing the properties
+   */
+  void print_effectiveness();
 };
 
 /*
