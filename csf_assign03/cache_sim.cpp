@@ -99,10 +99,64 @@ void Cache::loading(unsigned int mem_addr) {
   if (evic_policy == "lru") {
     loading_lru(curr_set, blk_cnt);
   } else if (evic_policy == "fifo") {
-    // loading_fifo(curr_set, blk_cnt);
+    loading_fifo(curr_set, blk_cnt);
   }
 }
+/*
+ * Helper function for loading when using fifo eviction policy.
+ *
+ * Parameters:
+ *  curr_set: the cache set in which the load operation is being performed
+ *  blk_cnt: the tag for identifying the cache block
+ */
+void Cache::loading_fifo(Set &curr_set, unsigned int blk_cnt){
+  bool hit = false;
+  // searching the set for a block with matching tag
+  for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+    Block &block = curr_set.blocks[i];
+    if (block.tag == blk_cnt && block.valid){
+      hit = true;
+      break;
+    }
+  }
 
+  if(hit){
+    load_hits += 1; // if hit, update stats
+  } else{
+    //if not hit, find the last block being loaded
+    //update its timestamp, and replace the data
+    load_misses += 1;
+    unsigned int max_ts = 0;
+    unsigned int min_ts = curr_set.blocks[0].load_ts;
+    int index_fifo = 0;
+    for(unsigned long int i = 0; i < curr_set.blocks.size(); i++){
+      if(curr_set.blocks[i].load_ts > max_ts){
+	max_ts = curr_set.blocks[i].load_ts;
+      }
+      if(curr_set.blocks[i].load_ts < min_ts){
+	min_ts = curr_set.blocks[i].load_ts;
+	index_fifo = i;
+      }
+    }
+    if (curr_set.blocks[index_fifo].dirty == true){
+      curr_set.blocks[index_fifo].dirty = false;
+      total_cycles += 100 * (bytes / 4);
+    }
+    curr_set.blocks[index_fifo].tag = blk_cnt;
+    curr_set.blocks[index_fifo].valid = true;
+    curr_set.blocks[index_fifo].load_ts = max_ts + 1;
+    total_cycles += 100 * (bytes / 4); 
+  }
+
+}
+
+/*
+ * Helper function for loading when using LRU eviction policy.
+ *
+ * Parameters:
+ *  curr_set: the cache set in which the load operation is being performed
+ *  blk_cnt: the tag for identifying the cache block
+ */
 void Cache::loading_lru(Set &curr_set, unsigned int blk_cnt) {
   bool hit = false;
   int index_blk = -1;

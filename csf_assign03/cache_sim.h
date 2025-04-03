@@ -56,9 +56,23 @@ struct Cache {
    *  mem_addr: input memory address
    */
   void loading(unsigned int mem_addr);
-
+  /*
+   * Helper function for loading when using LRU eviction policy.
+   *
+   * Parameters:
+   *  curr_set: the cache set in which the load operation is being performed
+   *  blk_cnt: the tag for identifying the cache block
+   */
   void loading_lru(Set &curr_set, unsigned int blk_cnt);
-  // void loading_fifo(Set &curr_set, unsigned int blk_cnt);
+
+  /*
+   * Helper function for loading when using fifo eviction policy.
+   *
+   * Parameters:
+   *  curr_set: the cache set in which the load operation is being performed
+   *  blk_cnt: the tag for identifying the cache block
+   */
+  void loading_fifo(Set &curr_set, unsigned int blk_cnt);
 
   /*
    * store the memory to cache from input mem_addr, update the cache and its
