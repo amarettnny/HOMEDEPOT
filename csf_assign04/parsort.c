@@ -26,15 +26,33 @@ int main( int argc, char **argv ) {
 
   // open the named file
   // TODO: open the named file
-
+  char* filename = argv[1];
+  fd = open(filename, O_RDWR);
+  if (fd < 0){
+    fprintf(stderr, "File couldn't be opend");
+    exit(1);
+  }
   // determine file size and number of elements
   unsigned long file_size, num_elements;
   // TODO: determine the file size and number of elements
-
+  struct stat statbuf;
+  int rc = fstat(fd, &statbuf);
+  if (rc != 0){
+    fprintf(stderr, "Fstat error occurs");
+    close(fd);
+    exit(0);
+  }
+  file_size = statbuf.st_size;
+  num_elements = file_size/(sizeof(int64_t));
   // mmap the file data
   int64_t *arr;
   // TODO: mmap the file data
-
+  arr = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
+  close(fd);
+  if (arr == MAP_FAILED){
+    fprintf(stderr, "Mmap error occurs");
+    exit(1);
+  }
   // Sort the data!
   int success;
   success = quicksort( arr, 0, num_elements, par_threshold );
@@ -45,7 +63,7 @@ int main( int argc, char **argv ) {
 
   // Unmap the file data
   // TODO: unmap the file data
-
+  munmap(arr, file_size);
   return 0;
 }
 
