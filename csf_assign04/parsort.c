@@ -29,7 +29,7 @@ int main( int argc, char **argv ) {
   char* filename = argv[1];
   fd = open(filename, O_RDWR);
   if (fd < 0){
-    fprintf(stderr, "File couldn't be opend");
+    fprintf(stderr, "File couldn't be opend\n");
     exit(1);
   }
   // determine file size and number of elements
@@ -38,9 +38,9 @@ int main( int argc, char **argv ) {
   struct stat statbuf;
   int rc = fstat(fd, &statbuf);
   if (rc != 0){
-    fprintf(stderr, "Fstat error occurs");
+    fprintf(stderr, "Fstat error occurs\n");
     close(fd);
-    exit(0);
+    exit(1);
   }
   file_size = statbuf.st_size;
   num_elements = file_size/(sizeof(int64_t));
@@ -50,7 +50,7 @@ int main( int argc, char **argv ) {
   arr = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
   close(fd);
   if (arr == MAP_FAILED){
-    fprintf(stderr, "Mmap error occurs");
+    fprintf(stderr, "Mmap error occurs\n");
     exit(1);
   }
   // Sort the data!
