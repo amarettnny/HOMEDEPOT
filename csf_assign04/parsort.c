@@ -12,6 +12,11 @@ int compare( const void *left, const void *right );
 void swap( int64_t *arr, unsigned long i, unsigned long j );
 unsigned long partition( int64_t *arr, unsigned long start, unsigned long end );
 int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold );
+pid_t quicksort_subproc(int64_t *arr,
+                        unsigned long start,
+                        unsigned long end,
+                        unsigned long par_threshold);
+int quicksort_wait(pid_t pid);
 
 // TODO: declare additional helper functions if needed
 
@@ -195,11 +200,62 @@ int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned lo
 
   // Recursively sort the left and right partitions
   int left_success, right_success;
-  // TODO: modify this code so that the recursive calls execute in child processes
-  left_success = quicksort( arr, start, mid, par_threshold );
-  right_success = quicksort( arr, mid + 1, end, par_threshold );
+  pid_t left_pid, right_pid;
+
+  // Fork a left child process
+  left_pid = quicksort_subproc(arr, start, mid, par_threshold);
+  if (left_pid < 0) {
+    return 0; // fork failed
+  }
+
+  right_pid = quicksort_subproc(arr, mid + 1, end, par_threshold);
+  if (right_pid < 0) {
+    // If the second fork fails, we should wait for the first child to avoid zombie process
+    quicksort_wait(left_pid);
+    return 0;
+  }
+
+  // Wait for both child processes
+  left_success  = quicksort_wait(left_pid);
+  right_success = quicksort_wait(right_pid);
 
   return left_success && right_success;
 }
 
-// TODO: define additional helper functions if needed
+pid_t quicksort_subproc(int64_t *arr,
+                        unsigned long start,
+                        unsigned long end,
+                        unsigned long par_threshold) {
+  pid_t pid = fork();
+  if (pid < 0) {
+    return 0; // fork failed
+  }
+  else if (pid == 0) { //child process
+    int ret = quicksort(arr, start, end, par_threshold);
+
+    if (ret == 1) { // Sorting succeed
+      exit(EXIT_SUCCESS);
+    } else{
+      exit(EXIT_FAILURE);
+    }
+  }
+  // Returns child's PID
+  return pid;
+}
+
+int quicksort_wait(pid_t pid) {
+  if (pid < 0) {
+    return 0; // fork failed
+  }
+  int wstatus;
+  pid_t rc = waitpid(pid, &wstatus, 0);
+  if (rc < 0) {
+    perror("waitpid");
+    return 0;
+  }
+  // Check if child exited normally --> status 0
+  if (!WIFEXITED(wstatus) || (WEXITSTATUS(wstatus) != 0)) {
+    return 0; // Child either terminated abnormally or with nonzero
+  }
+  return 1;
+}
