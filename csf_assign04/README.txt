@@ -1,7 +1,7 @@
 CONTRIBUTIONS
 
-TODO: write a brief summary of how each team member contributed to
-the project.
+    Tianji finished Task 1, 2, and 4
+    Siyang finished Task 3
 
 REPORT
 

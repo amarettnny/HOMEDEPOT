@@ -222,6 +222,19 @@ int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned lo
   return left_success && right_success;
 }
 
+// Fork a child process to do quicksort on [start, end).
+// Returns the PID of the child process or 0 if fork failed.
+// 
+// Parameters:
+//   arr - pointer to first element of array
+//   start - inclusive lower bound index
+//   end - exclusive upper bound index
+//   par_threshold - if the number of elements in the region is less
+//                   than or equal to this threshold, sort sequentially,
+//                   otherwise sort in parallel using child processes
+//
+// Return:
+//   0 if fork failed, the PID of the child process otherwise
 pid_t quicksort_subproc(int64_t *arr,
                         unsigned long start,
                         unsigned long end,
@@ -243,6 +256,13 @@ pid_t quicksort_subproc(int64_t *arr,
   return pid;
 }
 
+// Wait for the child process to finish.
+// 
+// Parameters:
+//   pid - process id of the process to wait for. 
+// 
+// Return:
+//   1 if successful, 0 otherwise.
 int quicksort_wait(pid_t pid) {
   if (pid < 0) {
     return 0; // fork failed
@@ -255,7 +275,7 @@ int quicksort_wait(pid_t pid) {
   }
   // Check if child exited normally --> status 0
   if (!WIFEXITED(wstatus) || (WEXITSTATUS(wstatus) != 0)) {
-    return 0; // Child either terminated abnormally or with nonzero
+    return 0; // Child either exit abnormally or with nonzero exit code
   }
   return 1;
 }
