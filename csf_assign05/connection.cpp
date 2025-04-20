@@ -67,7 +67,7 @@ bool Connection::send(const Message &msg) {
     return false;
   }
   // do I need to check tag is valid?
-  std::string send_message = msg.tag + " " + msg.data + "\n";
+  std::string send_message = msg.tag + ":" + msg.data + "\n";
   ssize_t size_write = rio_writen(m_fd, send_message.c_str(), send_message.length());
   if (size_write != (ssize_t)send_message.length()){
     m_last_result = EOF_OR_ERROR;
@@ -96,7 +96,7 @@ bool Connection::receive(Message &msg) {
   std::string tag;
   std::string data;
   std::string all_message(receive_message);
-  size_t split_index = all_message.find(' ');
+  size_t split_index = all_message.find(':');
   if (split_index == std::string::npos){
     m_last_result = EOF_OR_ERROR;
     return false;
