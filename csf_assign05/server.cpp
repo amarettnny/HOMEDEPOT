@@ -29,9 +29,9 @@ struct Client_thread{
   Server* server;
   Connection* conn;
 };
-//void chat_with_sender(Connection* conn, Room* room, User* user){
-//  return;
-//}
+void chat_with_sender(Connection* conn, Room* room, User* user){
+  return;
+}
 void chat_with_receiver(Connection* conn, Room* room, User* user){
   return;
 }
@@ -104,13 +104,12 @@ void *worker(void *arg) {
   Room* room = server->find_or_create_room(receive_join.data);
   room->add_member(user); 
   if (receive_login.tag == TAG_SLOGIN){
-    //chat_with_sender(conn);
+    chat_with_sender(conn, room, user);
   }else{
     chat_with_receiver(conn, room, user);
   }
+  delete client_conn;
   delete conn;
-  delete user;
-  delete room;
   return nullptr;
 }
 
