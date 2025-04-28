@@ -33,6 +33,14 @@ void chat_with_sender(Connection* conn, Room* room, User* user){
   return;
 }
 void chat_with_receiver(Connection* conn, Room* room, User* user){
+  while(1){
+    Message* next_send = user->mqueue.dequeue();
+    if(!conn->send(*next_send)){
+      delete next_send;
+      break;
+    }
+    delete next_send;
+  }
   return;
 }
 void *worker(void *arg) {
