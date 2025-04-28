@@ -44,7 +44,7 @@ void *worker(void *arg) {
   Client_thread* client_conn = static_cast<Client_thread*>(arg);
   Connection* conn = client_conn->conn;
   Server* server = client_conn->server;
-
+  delete client_conn;
   // TODO: read login message (should be tagged either with
   //       TAG_SLOGIN or TAG_RLOGIN), send response
   Message receive_login;
@@ -110,7 +110,6 @@ void *worker(void *arg) {
   }
   room->remove_member(user);
   delete user;
-  delete client_conn;
   delete conn;
   return nullptr;
 }
