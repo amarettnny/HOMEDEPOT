@@ -16,7 +16,6 @@ MessageQueue::~MessageQueue() {
       delete m;
     }
   }
-
   // destroy the mutex and the semaphore
   pthread_mutex_destroy(&m_lock);
   sem_destroy(&m_avail);

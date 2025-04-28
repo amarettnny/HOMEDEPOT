@@ -85,7 +85,7 @@ Room *Server::find_or_create_room(const std::string &room_name) {
   auto ex = m_rooms.find(room_name); //check if existed
   if (ex != m_rooms.end()) { //if the pointer to the existed room is not the end
     return ex->second;
-  } 
+  }
   Room* r = new Room(room_name);
   this->m_rooms[room_name] = r;
   return r;
