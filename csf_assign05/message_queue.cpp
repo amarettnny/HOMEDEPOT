@@ -1,5 +1,7 @@
 #include <cassert>
 #include <ctime>
+#include "guard.h"
+#include "message.h"
 #include "message_queue.h"
 
 MessageQueue::MessageQueue() {
@@ -55,8 +57,8 @@ Message *MessageQueue::dequeue() {
   Message *msg = nullptr;
   {
     Guard lock(m_lock);
-    msg = m_queue.front();
-    m_queue.pop_front();
+    msg = m_messages.front();
+    m_messages.pop_front();
   }  // lock released 
 
   return msg;

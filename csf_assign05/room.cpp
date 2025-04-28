@@ -18,7 +18,7 @@ Room::~Room() {
 void Room::add_member(User *user) {
   // add User to the room
   {
-    Guard lock(lock);
+    Guard lock(this->lock);
     members.insert(user);
   }
 }
@@ -26,7 +26,7 @@ void Room::add_member(User *user) {
 void Room::remove_member(User *user) {
   // remove User from the room
   {
-    Guard lock(lock);
+    Guard lock(this->lock);
     members.erase(user);
   }
 } 
