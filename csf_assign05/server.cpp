@@ -108,6 +108,8 @@ void *worker(void *arg) {
   }else{
     chat_with_receiver(conn, room, user);
   }
+  room->remove_member(user);
+  delete user;
   delete client_conn;
   delete conn;
   return nullptr;
