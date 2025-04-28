@@ -53,16 +53,24 @@ void *worker(void *arg) {
 Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
-  // TODO: initialize mutex
+  // initialize mutex
+  pthread_mutex_init(&m_lock, nullptr);
 }
 
 Server::~Server() {
-  // TODO: destroy mutex
+  // destroy mutex
+  pthread_mutex_destroy(&m_lock);
 }
 
 bool Server::listen() {
-  // TODO: use open_listenfd to create the server socket, return true
-  //       if successful, false if not
+  // use open_listenfd to create the server socket, return true
+  // if successful, false if not
+  std::string portstr = std::to_string(m_port);
+  m_ssock = open_listenfd(portstr.c_str());
+  if (m_ssock < 0){
+    return false;
+  }
+  return true;
 }
 
 void Server::handle_client_requests() {
@@ -71,6 +79,14 @@ void Server::handle_client_requests() {
 }
 
 Room *Server::find_or_create_room(const std::string &room_name) {
-  // TODO: return a pointer to the unique Room object representing
-  //       the named chat room, creating a new one if necessary
+  // return a pointer to the unique Room object representing
+  // the named chat room, creating a new one if necessary
+  Guard lock(m_lock);
+  auto ex = m_rooms.find(room_name); //check if existed
+  if (ex != m_rooms.end()) { //if the pointer to the existed room is not the end
+    return ex->second;
+  } 
+  Room* r = new Room(room_name);
+  this->m_rooms[room_name] = r;
+  return r;
 }

@@ -3,18 +3,35 @@
 #include "message_queue.h"
 
 MessageQueue::MessageQueue() {
-  // TODO: initialize the mutex and the semaphore
+  // initialize the mutex and the semaphore
+  pthread_mutex_init(&m_lock, nullptr);
+  sem_init(&m_avail, 0, 0);
 }
 
 MessageQueue::~MessageQueue() {
-  // TODO: destroy the mutex and the semaphore
+  {
+    Guard lock(m_lock);
+    // for each message left in queue, free the memory 
+    for (Message* m : m_messages) {
+      delete m;
+    }
+  }
+
+  // destroy the mutex and the semaphore
+  pthread_mutex_destroy(&m_lock);
+  sem_destroy(&m_avail);
 }
 
 void MessageQueue::enqueue(Message *msg) {
-  // TODO: put the specified message on the queue
-
+  // block scoped, critical section
+  {
+    Guard lock(m_lock);
+    // put message on queue
+    m_messages.push_back(msg);
+  }
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post
+  sem_post(&m_avail);
 }
 
 Message *MessageQueue::dequeue() {
@@ -29,10 +46,19 @@ Message *MessageQueue::dequeue() {
   // compute a time one second in the future
   ts.tv_sec += 1;
 
-  // TODO: call sem_timedwait to wait up to 1 second for a message
-  //       to be available, return nullptr if no message is available
+  // call sem_timedwait to wait up to 1 second for a message
+  // to be available, return nullptr if no message is available
+  if (sem_timedwait(&m_avail, &ts) == -1) {
+        return nullptr;
+  }
 
-  // TODO: remove the next message from the queue, return it
+  // remove the next message from the queue, return it
   Message *msg = nullptr;
+  {
+    Guard lock(m_lock);
+    msg = m_queue.front();
+    m_queue.pop_front();
+  }  // lock released 
+
   return msg;
 }
