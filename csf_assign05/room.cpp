@@ -35,7 +35,7 @@ void Room::broadcast_message(const std::string &sender_username, const std::stri
   Guard lock(this->lock);
   // send a message to every (receiver) User in the room
   // format the broadcast message
-  std::string msg_str = this->room_name + ":" + sender_username + ": " + message_text;
+  std::string msg_str = this->room_name + ":" + sender_username + ":" + message_text;
 
   // for each user enqueue a freshly-allocated Message
   for (User *u : members) {

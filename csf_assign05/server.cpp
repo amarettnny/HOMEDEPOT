@@ -164,6 +164,12 @@ static void* worker(void* arg) {
         delete client;
         return nullptr;
     }
+    // quit before ever joining
+    if (join.tag == TAG_QUIT) {
+      client->conn->send(Message(TAG_OK, "bye"));
+      delete client;
+      return nullptr;
+    }
     if (join.tag != TAG_JOIN) {
         client->conn->send(Message(TAG_ERR,
             "Must join a room first"));
