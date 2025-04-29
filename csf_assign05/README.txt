@@ -9,9 +9,14 @@ MS1:
     Tianji wrote both the connection and the receiver. 
     Siyang wrote the sender. 
 
+MS2:
+    Siyang wrote the room.cpp, message_queue.cpp, and chat_with_sender function in server
+    Tianji wrote the server.cpp
+
 Eventually your report about how you implemented thread synchronization
 in the server should go here
 
+----------------------------------------------------------------------------------
 Report:
 Critical Sections:
 1. map of rooms on a server (Server m_rooms)
@@ -40,6 +45,16 @@ Meet synchronization requirements:
 By using Guard, we lock then unlock the shared data (Server, Room, and MessageQueue) for operations on them. 
 This ensures that no matter what operations different users are trying to do "at the same time"
 the operations will always execute one by one in order, which prevent race conditions from happening.
+Additionally, since we always lock at most one mutex at a time (and never hold a room lock while 
+grabbing a different room’s lock), these critical sections prevent deadlocks to form. 
+
+Our implementation is also efficient in the way that while controlling or blocking related operations, 
+we also make sure unrelated rooms and independent operations proceed without unnecessary blocking.
+
+Our design would meet the synchronization requirements as we passed both the automated concurrency test 
+and the gradescope concurrency tests.
+
+
 
 
 
